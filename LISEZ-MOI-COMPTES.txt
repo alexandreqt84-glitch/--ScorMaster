@@ -21,3 +21,10 @@ C) Utilisation
  - Pas de "mot de passe oublié" (pas d'e-mail) : note-le. En cas de perte, supprime l'utilisateur dans Supabase > Authentication > Users.
 
 Limites actuelles : chaque joueur enregistre ses propres parties ; une partie jouée à plusieurs n'est pas partagée automatiquement entre les comptes (seuls les scores/stats publics alimentent le classement général).
+
+PARTAGE DES PARTIES (mise à jour)
+ - Supabase > SQL Editor > colle supabase-partage.sql > Run (à faire une fois, après supabase.sql).
+ - Quand tu enregistres une partie, elle apparaît aussi dans l'historique des joueurs dont le NOM dans la partie
+   est exactement leur pseudo (accents et majuscules ignorés). Écris donc leur pseudo tel quel.
+ - Seul le créateur de la partie peut la modifier ou la supprimer pour tout le monde. Un autre joueur peut seulement la masquer de son historique.
+ - Les parties EN COURS ne sont pas partagées en direct : seulement une fois enregistrées.
