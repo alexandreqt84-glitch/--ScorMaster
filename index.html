@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr" data-mode="cartes">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#06060d">
+<title>ScoreMaster</title>
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ScoreMaster">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="icon" href="icon-192.png" type="image/png" sizes="192x192">
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-mode="cartes">
+<header><a class="logo" href="#/"><span>🎲</span> <b>ScoreMaster</b></a><div class="tag"><span class="mtag">🃏 Cartes</span> <span class="ver" data-ver>v1.3.0</span></div></header>
+<div class="modes" id="modes">
+  <button data-a="mode" data-v="cartes">🃏 Cartes</button>
+  <button data-a="mode" data-v="autres">🎲 Autres jeux</button>
+</div>
+<div id="deco" aria-hidden="true"></div>
+<main id="root"></main>
+<nav class="tabs" id="tabs" aria-label="Navigation">
+  <a href="#/" data-p=""><span>🏠</span>Accueil</a><a href="#/nouvelle" data-p="nouvelle"><span>🎮</span>Jouer</a><a href="#/classement" data-p="classement"><span>🏅</span>Classement</a>
+  <a href="#/profil" data-p="profil"><span>👤</span>Profil</a><a href="#/plus" data-p="plus"><span>☰</span>Plus</a>
+</nav>
+<footer><b>ScoreMaster</b> <span data-ver>v1.3.0</span> · © 2026</footer>
+<script src="cat-cartes.js"></script>
+<script src="cat-autres.js"></script>
+<script src="cat-plus.js"></script>
+<script src="cat-variantes.js"></script>
+<script src="cat-limites.js"></script>
+<script src="cat-usuel.js"></script>
+<script src="play-solo.js"></script>
+<script src="play-party.js"></script>
+<script src="play-variantes.js"></script>
+<script src="config.js"></script>
+<script src="core.js"></script>
+<script src="cloud.js"></script>
+<script src="fx.js"></script>
+<script src="app.js"></script>
+<script>
+if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("sw.js", { scope: "./" }).catch(e => console.log("SW", e)));
+</script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+ScoreMaster — comptes joueurs (Supabase, gratuit)
+
+A) Créer le projet (10 min, une seule fois, par toi)
+ 1. supabase.com > Sign in (avec GitHub) > New project > nom "scoremaster", mot de passe de base de données (note-le), région proche > Create.
+ 2. Menu "SQL Editor" > New query > colle tout le contenu de supabase.sql > Run (doit afficher "Success").
+ 3. Authentication > Sign In / Providers > Email : laisse Email activé et DÉSACTIVE "Confirm email" > Save.
+    (Les joueurs n'ont pas d'e-mail : leur pseudo sert d'identifiant.)
+ 4. Project Settings > API (ou "API Keys") : copie "Project URL" et la clé "anon public" (ou "publishable").
+    Ne copie JAMAIS la clé "service_role" / "secret".
+
+B) Brancher l'appli
+ - Ouvre config.js et remplis :  window.SM_CLOUD = { url: "https://xxxx.supabase.co", key: "ta_cle_anon" };
+   (ou envoie-moi l'URL et la clé anon, je le fais.)
+ - Renvoie les fichiers sur GitHub (config.js, cloud.js, core.js, app.js, index.html, sw.js) > attends 1-2 min > rouvre l'appli 2 fois.
+
+C) Utilisation
+ - Plus > Mon compte > "Créer mon compte" (pseudo + mot de passe 6 caractères minimum).
+ - Parties, favoris, profil et records sont rattachés au compte et retrouvés sur tout téléphone.
+ - Plus > Classement général : tous les joueurs ayant un compte, par mode (Cartes / Autres jeux).
+ - Les données déjà présentes sur le téléphone sont rattachées au compte à la première connexion.
+ - Pas de "mot de passe oublié" (pas d'e-mail) : note-le. En cas de perte, supprime l'utilisateur dans Supabase > Authentication > Users.
+
+Limites actuelles : chaque joueur enregistre ses propres parties ; une partie jouée à plusieurs n'est pas partagée automatiquement entre les comptes (seuls les scores/stats publics alimentent le classement général).
