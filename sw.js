@@ -1,11 +1,11 @@
 // Service worker ScoreMaster : fonctionne hors ligne. Changer VERSION à chaque mise à jour des fichiers.
-const VERSION = "1.3.0-pwa4";
+const VERSION = "1.3.0-pwa5";
 const CACHE = "scoremaster-" + VERSION;
 const FILES = ["./", "index.html", "style.css", "manifest.json", "icon.svg",
   "config.js", "core.js", "cloud.js", "fx.js", "app.js",
-  "cat-cartes.js", "cat-autres.js", "cat-plus.js", "cat-variantes.js", "cat-limites.js", "cat-usuel.js",
+  "cat-cartes.js", "cat-autres.js", "cat-plus.js", "cat-populaires.js", "cat-populaires2.js", "cat-variantes.js", "cat-variantes-pop.js", "cat-limites.js", "cat-usuel.js",
   "play-solo.js", "play-party.js", "play-variantes.js",
-  "icon-192.png", "icon-512.png", "icon-maskable-512.png", "apple-touch-icon.png"];
+  "icons/icon-192.png", "icons/icon-512.png", "icons/icon-maskable-512.png", "icons/apple-touch-icon.png"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));

@@ -1,0 +1,34 @@
+REPRISE — état du travail (pour continuer : dis à Claude « continue à partir de REPRISE.txt »)
+
+Demande : (1) chercher et ajouter les jeux populaires (cartes + autres), (2) classement PAR JEU,
+(3) livrer avant la fin des crédits avec l'arrêt précis.
+
+TOUT CE QUI � ÉTÉ DEMANDÉ EST FAIT. Rien n'est coupé en plein milieu.
+
+FAIT
+ [x] Recherche web des jeux populaires (Trio, Skyjo, Skull, Quacks, Brass, Châteaux de Bourgogne, Flip 7 ...).
+ [x] Lot 1 CARTES  : server/public/cat-populaires.js   -> 14 jeux (cartes : 25 -> 39).
+ [x] Lot 2 AUTRES  : server/public/cat-populaires2.js  -> 26 jeux (autres : 48 -> 74).
+     Branchés dans index.html et sw.js (FILES, VERSION 1.3.0-pwa4). Aucun id ni nom en double (vérifié).
+ [x] Classement PAR JEU :
+     - #/parjeu : liste des jeux déjà joués (dans Classement > « Par jeu » et dans Classement général).
+     - #/jeu/<id> : classement du jeu (gloire / victoires / réussite, meilleur score, moyenne, records, dernières parties).
+       Avec un compte, les parties de TOUS les comptes sont incluses (cloud.js : Cloud.loadGame).
+     - Boutons « 🏅 Classement » dans Plus > Jeux et règles ; noms de jeux cliquables dans « Ses jeux » d'un profil.
+ [x] Profils des autres joueurs (livré avant) : #/joueur/..., #/joueurs.
+
+ARRÊT PRÉCIS
+ Dernière étape terminée : test de syntaxe + contrôle des doublons du catalogue + test des pages jeu/parjeu avec un faux serveur.
+ Il n'y a PAS d'étape en cours. Prochaine idée si tu veux continuer (rien d'obligatoire) :
+  1. Ajouter des VARIANTES aux nouveaux jeux : cat-variantes.js (format : id: [["Nom","Règle",{target?,low?}], ...]).
+  2. Ajouter des limites de points par manche : cat-limites.js (window.LIM[id] = nombre ou fonction) et seuils cat-usuel.js.
+  3. Classement par jeu avec les stats PUBLIQUES du cloud (aujourd'hui calculé à partir des parties lisibles).
+  4. Plus de jeux : copier un bloc A(...) dans cat-populaires2.js (autres) ou C(...) dans cat-populaires.js (cartes).
+ Rappels : relancer supabase.sql dans Supabase (règle « parties lisibles »), renvoyer TOUS les fichiers modifiés sur GitHub,
+ rouvrir l'appli 2 fois.
+
+SESSION SUIVANTE : idée 1 faite -> server/public/cat-variantes-pop.js (variantes de 40 jeux populaires, branché dans index.html et sw.js, VERSION 1.3.0-pwa5).
+ Idée 2 (limites) non faite : pas de plafond sûr vérifié pour ces jeux (à faire avec les règles officielles).
+
+Fichiers modifiés/ajoutés dans cette session : app.js, cloud.js, style.css, sw.js, index.html, supabase.sql,
+ cat-populaires.js (nouveau), cat-populaires2.js (nouveau), LISEZ-MOI*.txt, REPRISE.txt.
