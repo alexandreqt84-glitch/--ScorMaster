@@ -90,7 +90,7 @@ const Core = {
     if (typeof Cloud !== "undefined") Cloud.pushProfile();
     return true;
   },
-  async removeAll() { Core._sp([]); Core._spq([]); Core.hist = []; try { await Core._json(Core.API, { method: "DELETE" }); } catch (e) {} },
+  async removeAll() { Core._sp([]); Core._spq([]); Core.hist = []; try { await Core._json(Core.API, { method: "DELETE", headers: { "X-Confirm": "tout-supprimer" } }); } catch (e) {} },
   async remove(id) { Core._sp(Core._lp().filter(x => x.id !== id)); Core._spq(Core._pq().filter(x => x !== id)); if (Core.hist) Core.hist = Core.hist.filter(x => x.id !== id); try { await Core._json(Core.API + "/" + encodeURIComponent(id), { method: "DELETE" }); } catch (e) {} },
 
   // une partie en cours PAR MODE (Cartes / Autres jeux) : on ne voit jamais celle de l'autre mode
@@ -111,7 +111,7 @@ const Core = {
 
   create(game, names, target, limite, usuel) {
     return { id: Core.uid(), mode: game.mode, jeu: game.name, emoji: game.emoji, low: !!game.low, target: target || 0, limite: limite || 0, usuel: usuel || 0,
-      joueurs: names, manches: [], quick: game.quick || [], date: new Date().toISOString(), fini: false };
+      gid: game.id, coop: !!game.coop, joueurs: names, manches: [], quick: game.quick || [], date: new Date().toISOString(), fini: false };
   },
   totals: p => p.joueurs.map((_, i) => p.manches.reduce((s, m) => s + (Number(m[i]) || 0), 0)),
   ranking(p) {
@@ -135,20 +135,67 @@ const Core = {
     const cur = Core.LEVELS[i], nx = Core.LEVELS[i + 1];
     return { i, nom: cur[1], emoji: cur[2], next: nx ? nx[0] : null, nextNom: nx ? nx[1] : null, pct: nx ? Math.round(100 * (pg - cur[0]) / (nx[0] - cur[0])) : 100 };
   },
-  badges(s, rang) {
-    const g = Object.keys(s.jeux).length;
+  // Catégories de succès (ordre d'affichage)
+  ACH_CATS: [["debuts", "🎲", "Premiers pas"], ["parties", "🎯", "Parties jouées"], ["victoires", "⚔️", "Victoires"], ["series", "🔥", "Séries"], ["assidu", "📅", "Assiduité"], ["variete", "🌍", "Variété"], ["exploits", "💥", "Exploits"], ["gloire", "⭐", "Gloire"]],
+  // extras utiles aux succès (calculés à partir des parties du joueur)
+  extras(parties, nom) {
+    const k = Core.norm(nom), done = parties.filter(p => p.fini && p.joueurs.some(n => Core.norm(n) === k));
+    const pr = Core.profil(parties, nom), mine = pr.mine, x = { jours: Core.jours(parties, nom), maxN: 0, podiums: 0, nuit: 0, matin: 0, weekend: 0, modes: 0, solo: 0, duo: 0, adv: 0, jeuMax: 0, jeuVicMax: 0, ecrasant: 0, serre: 0, grande: 0 };
+    const modes = new Set(), adv = new Set(), par = {}, vic = {};
+    done.forEach(p => { const d = new Date(p.date), h = d.getHours(), w = d.getDay(); if (h < 5) x.nuit++; else if (h < 8) x.matin++; if (w === 0 || w === 6) x.weekend++; modes.add(p.mode); });
+    mine.forEach(g => {
+      x.maxN = Math.max(x.maxN, g.n); par[g.jeu] = (par[g.jeu] || 0) + 1;
+      if (g.n < 2) x.solo++; if (g.n === 2) x.duo++;
+      if (g.n >= 3 && g.rang <= 3) x.podiums++;
+      g.adv.forEach(a => adv.add(Core.norm(a)));
+      if (g.res === "V") { vic[g.jeu] = (vic[g.jeu] || 0) + 1; if (g.n >= 5) x.grande++; if (!g.low && g.score >= 5 && g.marge >= g.score / 2) x.ecrasant++; if (g.score >= 5 && g.marge <= 1) x.serre++; }
+    });
+    x.modes = modes.size; x.adv = adv.size; x.jeuMax = Math.max(0, ...Object.values(par)); x.jeuVicMax = Math.max(0, ...Object.values(vic));
+    return x;
+  },
+  // [emoji, nom, description, débloqué, [actuel, objectif], catégorie]
+  badges(s, rang, x) {
+    x = x || {}; const g = Object.keys(s.jeux).length, n = v => v || 0, A = (e, nom, d, cur, goal, cat) => [e, nom, d, cur >= goal, [Math.min(cur, goal), goal], cat];
     return [
-      ["👑", "Roi du classement", "Être n°1 du classement", rang === 0 && s.jouees > 0, [rang === 0 ? 1 : 0, 1]],
-      ["🥇", "Première victoire", "Gagner une partie", s.victoires >= 1, [s.victoires, 1]],
-      ["🔥", "En feu", "3 victoires d'affilée en cours", s.serie >= 3, [s.serie, 3]],
-      ["⚡", "Série de 5", "5 victoires d'affilée (record)", s.meilleureSerie >= 5, [s.meilleureSerie, 5]],
-      ["🎯", "Régulier", "Jouer 10 parties", s.jouees >= 10, [s.jouees, 10]],
-      ["💯", "Centenaire", "Jouer 100 parties", s.jouees >= 100, [s.jouees, 100]],
-      ["⚔️", "Dominateur", "Gagner 10 parties", s.victoires >= 10, [s.victoires, 10]],
-      ["💎", "Invaincu", "100 % de victoires sur 3 parties multijoueurs ou +", s.multi >= 3 && s.victoires === s.multi, [s.multi >= 3 && s.victoires === s.multi ? 3 : Math.min(2, s.multi), 3]],
-      ["🌍", "Touche-à-tout", "Jouer à 5 jeux différents", g >= 5, [g, 5]],
-      ["🌟", "Cent de gloire", "Atteindre 100 ⭐", s.pg >= 100, [s.pg, 100]],
-      ["🏆", "Grand champion", "Atteindre 540 ⭐ (niveau Champion)", s.pg >= 540, [s.pg, 540]]
+      A("🎲", "Premier pas", "Terminer une partie", s.jouees, 1, "debuts"),
+      A("🥇", "Première victoire", "Gagner une partie", s.victoires, 1, "debuts"),
+      A("🧑‍🤝‍🧑", "Jamais sans amis", "Jouer une partie à 3 joueurs ou plus", n(x.maxN), 3, "debuts"),
+      A("🧍", "En solo", "Jouer une partie seul", n(x.solo), 1, "debuts"),
+      A("🥉", "Habitué du podium", "Finir 5 fois dans les 3 premiers (parties à 3+)", n(x.podiums), 5, "debuts"),
+      A("🎯", "Régulier", "Jouer 10 parties", s.jouees, 10, "parties"),
+      A("🎮", "Habitué", "Jouer 25 parties", s.jouees, 25, "parties"),
+      A("🔁", "Accro", "Jouer 50 parties", s.jouees, 50, "parties"),
+      A("💯", "Centenaire", "Jouer 100 parties", s.jouees, 100, "parties"),
+      A("🏃", "Marathonien", "Jouer 250 parties", s.jouees, 250, "parties"),
+      A("🥊", "Gagnant", "Gagner 5 parties", s.victoires, 5, "victoires"),
+      A("⚔️", "Dominateur", "Gagner 10 parties", s.victoires, 10, "victoires"),
+      A("🛡️", "Machine à gagner", "Gagner 25 parties", s.victoires, 25, "victoires"),
+      A("🐉", "Terreur de la table", "Gagner 50 parties", s.victoires, 50, "victoires"),
+      A("👑", "Roi du classement", "Être n°1 du classement", rang === 0 && s.jouees > 0 ? 1 : 0, 1, "victoires"),
+      A("🔥", "En feu", "3 victoires d'affilée (record)", s.meilleureSerie, 3, "series"),
+      A("⚡", "Série de 5", "5 victoires d'affilée (record)", s.meilleureSerie, 5, "series"),
+      A("🚀", "Imparable", "8 victoires d'affilée (record)", s.meilleureSerie, 8, "series"),
+      A("💎", "Invaincu", "100 % de victoires sur 3 parties multijoueurs ou plus", s.multi >= 3 && s.victoires === s.multi ? 3 : Math.min(2, s.multi), 3, "series"),
+      A("📆", "Trois jours de suite", "Jouer 3 jours d'affilée", n(x.jours), 3, "assidu"),
+      A("🗓️", "Semaine parfaite", "Jouer 7 jours d'affilée", n(x.jours), 7, "assidu"),
+      A("🏖️", "Joueur du week-end", "Jouer 5 parties le samedi ou le dimanche", n(x.weekend), 5, "assidu"),
+      A("🌙", "Noctambule", "Jouer une partie entre minuit et 5 h", n(x.nuit), 1, "assidu"),
+      A("🌅", "Lève-tôt", "Jouer une partie entre 5 h et 8 h", n(x.matin), 1, "assidu"),
+      A("🌍", "Touche-à-tout", "Jouer à 5 jeux différents", g, 5, "variete"),
+      A("🧭", "Explorateur", "Jouer à 10 jeux différents", g, 10, "variete"),
+      A("🗺️", "Globe-trotter", "Jouer à 20 jeux différents", g, 20, "variete"),
+      A("❤️", "Fidèle", "Jouer 10 parties au même jeu", n(x.jeuMax), 10, "variete"),
+      A("🎓", "Spécialiste", "Gagner 5 parties au même jeu", n(x.jeuVicMax), 5, "variete"),
+      A("🃏", "Deux mondes", "Jouer en mode Cartes et en mode Autres jeux", n(x.modes), 2, "variete"),
+      A("🤝", "Sociable", "Affronter 5 adversaires différents", n(x.adv), 5, "variete"),
+      A("🎪", "Grande tablée", "Gagner une partie à 5 joueurs ou plus", n(x.grande), 1, "exploits"),
+      A("💥", "Victoire écrasante", "Gagner avec une marge d'au moins la moitié de son score", n(x.ecrasant), 1, "exploits"),
+      A("😅", "Au poil !", "Gagner avec 1 point d'écart", n(x.serre), 1, "exploits"),
+      A("🥋", "Duelliste", "Jouer 10 duels (2 joueurs)", n(x.duo), 10, "exploits"),
+      A("🌟", "Cent de gloire", "Atteindre 100 ⭐", s.pg, 100, "gloire"),
+      A("💠", "Expert", "Atteindre 220 ⭐", s.pg, 220, "gloire"),
+      A("🏆", "Grand champion", "Atteindre 540 ⭐ (niveau Champion)", s.pg, 540, "gloire"),
+      A("🌌", "Légende", "Atteindre 800 ⭐", s.pg, 800, "gloire")
     ];
   },
   // jours de jeu consécutifs (jusqu'à aujourd'hui, ou hier si pas encore joué aujourd'hui)
@@ -157,13 +204,46 @@ const Core = {
     const d = new Date(); if (!days.has(d.toDateString())) d.setDate(d.getDate() - 1);
     let n = 0; while (days.has(d.toDateString())) { n++; d.setDate(d.getDate() - 1); } return n;
   },
+  // jeux coopératifs (victoire / défaite d'équipe) et équipes dont on connaît les joueurs
+  rank(p, t) {
+    if (p.coop && p.victoire !== undefined) return { rk: t.map(() => p.victoire ? 1 : 2), tops: p.victoire ? 1 : 0 };
+    if (p.teamOf) {
+      const ts = [...new Set(p.teamOf)].map(k => t[p.teamOf.indexOf(k)]), rk = t.map(v => 1 + ts.filter(w => p.low ? w < v : w > v).length);
+      return { rk, tops: ts.filter(w => !ts.some(x => p.low ? x < w : x > w)).length };
+    }
+    const rk = t.map(v => 1 + t.filter(w => p.low ? w < v : w > v).length); return { rk, tops: rk.filter(x => x === 1).length };
+  },
+  // partie par équipes avec les joueurs de chaque équipe (p.membres) -> une ligne par joueur (les stats vont à chaque personne)
+  explode: parties => parties.map(p => {
+    if (!p.membres || !p.fini || p.teamOf) return p;
+    const flat = [], teamOf = [];
+    p.joueurs.forEach((t, i) => { const ms = (p.membres[i] || []).filter(Boolean); (ms.length ? ms : [t]).forEach(n => { flat.push(n); teamOf.push(i); }); });
+    return { ...p, joueurs: flat, teamOf, manches: p.manches.map(m => teamOf.map(i => m[i])), equipes: p.joueurs };
+  }),
+  // niveau Elo (départ 1000) calculé sur une liste de parties d'un même jeu : battre un joueur mieux classé rapporte plus
+  elo(parties) {
+    const m = {}, K = 24;
+    Core.explode(parties).filter(p => p.fini && !p.coop && p.joueurs.length > 1).sort((a, b) => new Date(a.date) - new Date(b.date)).forEach(p => {
+      const t = Core.totals(p), d = p.joueurs.map(() => 0), ks = p.joueurs.map(n => Core.norm(n));
+      ks.forEach((k, i) => { if (k && !m[k]) m[k] = { nom: p.joueurs[i].trim(), elo: 1000, n: 0 }; });
+      let opp = ks.map(() => 0);
+      p.joueurs.forEach((_, i) => p.joueurs.forEach((__, j) => { if (i === j || !ks[i] || !ks[j] || ks[i] === ks[j] || (p.teamOf && p.teamOf[i] === p.teamOf[j])) return; opp[i]++; }));
+      p.joueurs.forEach((_, i) => p.joueurs.forEach((__, j) => {
+        if (i === j || !ks[i] || !ks[j] || ks[i] === ks[j] || (p.teamOf && p.teamOf[i] === p.teamOf[j])) return;
+        const s = t[i] === t[j] ? .5 : ((p.low ? t[i] < t[j] : t[i] > t[j]) ? 1 : 0), e = 1 / (1 + Math.pow(10, (m[ks[j]].elo - m[ks[i]].elo) / 400));
+        d[i] += (s - e) * K / opp[i];
+      }));
+      ks.forEach((k, i) => { if (k) { m[k].elo += d[i]; m[k].n++; } });
+    });
+    return Object.values(m).map(x => ({ ...x, elo: Math.round(x.elo) })).sort((a, b) => b.elo - a.elo);
+  },
   // statistiques par joueur (mode = "cartes" | "autres" | null ; days = 0 pour tout l'historique)
   stats(parties, mode, days) {
     const since = days ? Date.now() - days * 864e5 : 0, m = {};
-    parties.filter(p => p.fini && (!mode || p.mode === mode) && (!since || new Date(p.date).getTime() >= since))
+    Core.explode(parties).filter(p => p.fini && (!mode || p.mode === mode) && (!since || new Date(p.date).getTime() >= since))
       .sort((a, b) => new Date(a.date) - new Date(b.date)).forEach(p => {
-        const t = Core.totals(p), n = p.joueurs.length;
-        const rk = t.map(v => 1 + t.filter(w => p.low ? w < v : w > v).length), tops = rk.filter(x => x === 1).length;
+        const t = Core.totals(p), n = p.teamOf ? new Set(p.teamOf).size : p.joueurs.length;
+        const rk = Core.rank(p, t).rk, tops = Core.rank(p, t).tops;
         p.joueurs.forEach((nom, i) => {
           const k = Core.norm(nom); if (!k) return;
           const r = m[k] || (m[k] = { nom: nom.trim(), jouees: 0, multi: 0, victoires: 0, defaites: 0, egalites: 0, points: 0, pg: 0, serie: 0, meilleureSerie: 0, forme: [], jeux: {}, vic: {}, bat: {}, perdu: {}, derniere: 0 });
@@ -189,13 +269,13 @@ const Core = {
   },
   // détail d'un joueur : ses parties (avec résultat), évolution de sa gloire, records
   profil(parties, nom) {
-    const k = Core.norm(nom), done = parties.filter(p => p.fini).sort((a, b) => new Date(a.date) - new Date(b.date)), mine = [];
+    const k = Core.norm(nom), done = Core.explode(parties).filter(p => p.fini).sort((a, b) => new Date(a.date) - new Date(b.date)), mine = [];
     done.forEach((p, idx) => {
       const i = p.joueurs.findIndex(n => Core.norm(n) === k); if (i < 0) return;
-      const t = Core.totals(p), n = p.joueurs.length, rk = t.map(v => 1 + t.filter(w => p.low ? w < v : w > v).length), tops = rk.filter(x => x === 1).length;
+      const t = Core.totals(p), n = p.teamOf ? new Set(p.teamOf).size : p.joueurs.length, rk = Core.rank(p, t).rk, tops = Core.rank(p, t).tops;
       const res = n < 2 ? "S" : rk[i] === 1 && tops === 1 ? "V" : rk[i] === 1 ? "E" : "D";
-      const autres = t.filter((_, j) => j !== i), marge = res === "V" ? Math.abs(t[i] - (p.low ? Math.min(...autres) : Math.max(...autres))) : 0;
-      mine.push({ idx, jeu: p.jeu, emoji: p.emoji, date: p.date, mode: p.mode, n, rang: rk[i], score: t[i], res, marge, low: !!p.low, adv: p.joueurs.filter((_, j) => j !== i) });
+      const autres = t.filter((_, j) => j !== i && (!p.teamOf || p.teamOf[j] !== p.teamOf[i])), marge = res === "V" ? Math.abs(t[i] - (p.low ? Math.min(...autres) : Math.max(...autres))) : 0;
+      mine.push({ idx, jeu: p.jeu, emoji: p.emoji, date: p.date, mode: p.mode, n, rang: rk[i], score: t[i], res, marge, low: !!p.low, adv: p.joueurs.filter((_, j) => j !== i && (!p.teamOf || p.teamOf[j] !== p.teamOf[i])) });
     });
     const evo = mine.slice(-30).map(g => { const s = Core.stats(done.slice(0, g.idx + 1)).find(x => Core.norm(x.nom) === k); return s ? s.pg : 0; });
     const hauts = mine.filter(g => !g.low && g.n > 1), bestScore = hauts.sort((a, b) => b.score - a.score)[0] || null;

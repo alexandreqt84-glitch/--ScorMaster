@@ -32,3 +32,106 @@ SESSION SUIVANTE : idée 1 faite -> server/public/cat-variantes-pop.js (variante
 
 Fichiers modifiés/ajoutés dans cette session : app.js, cloud.js, style.css, sw.js, index.html, supabase.sql,
  cat-populaires.js (nouveau), cat-populaires2.js (nouveau), LISEZ-MOI*.txt, REPRISE.txt.
+
+
+=== SESSION 3 (en cours) : demande = (a) plus de SUCCÈS, (b) paramètres et autres pages plus fluides (moins d'infos par page, découpées en sous-pages),
+    (c) envoyer le zip + l'arrêt précis avant la fin des crédits. ===
+PLAN / ÉTAT (cocher au fur et à mesure) :
+ [x] 1. core.js : badges() étendu (~38 succès, par catégorie) + Core.extras(parties, nom)
+ [x] 2. app.js : page #/succes = liste de catégories ; #/succes/<cat> = détail ; « prochains à débloquer » en haut
+ [x] 3. app.js : #/parametres = menu ; sous-pages #/parametres/prefs | sauvegarde | donnees | apropos
+ [x] 4. app.js : #/profil allégé (édition + résumé) ; stats complètes dans #/profil/stats ; menu Plus regroupé
+ [x] 5. style.css (lignes de menu .nav, chevrons) ; sw.js VERSION 1.3.0-pwa6 ; test syntaxe ; zip final
+
+ARRÊT PRÉCIS (session 3) : tout le plan ci-dessus est FAIT, sauf un essai à l'écran sur téléphone (je n'ai pu tester que la syntaxe et le calcul des succès avec de fausses parties).
+ Fichiers touchés : core.js (badges 39 + extras + ACH_CATS), app.js (succes, parametres, plus, profil), style.css (.nav), sw.js (1.3.0-pwa6), cat-variantes-pop.js (session précédente).
+ Prochaines idées (rien d'obligatoire) : sous-pages pour #/aide et #/jeux (liste longue) ; notification « succès débloqué » à la fin d'une partie (comparer badges avant/après dans l'action de fin, app.js ~ S.last = S.cur) ;
+ succès aussi sur le profil des autres joueurs ; limites de points par manche des nouveaux jeux (cat-limites.js).
+ Rappels : renvoyer sur GitHub app.js, core.js, style.css, sw.js, cat-variantes-pop.js, index.html, REPRISE.txt ; rouvrir l'appli 2 fois.
+
+
+=== SESSION 4 (terminée) : demande = les 4 « prochaines idées » de la session 3 ===
+ [x] 1. Notification « succès débloqué » en fin de partie : app.js (unlockedOf + action end : compare les succès avant/après, toast + carte sur #/fin).
+ [x] 2. Succès sur le profil des autres joueurs : app.js (succesCard dans joueurView ; detailStats utilise maintenant les parties du joueur affiché, plus S.hist).
+ [x] 3. Limites de points par manche des jeux populaires : cat-limites.js (seulement les jeux dont les règles bornent le score : Flip 7 = 171 [web], Trio, Hanabi, The Mind, Whist, Papayoo, jeux à 1 point...).
+        Volontairement SANS limite (score non borné ou règles variables) : Brass, Quacks, Châteaux de Bourgogne, Wingspan, 7 Wonders Duel, Cascadia, Sagrada, Patchwork, King of Tokyo, Small World, Rikiki, Bridge, Cambio, Five Crowns, Sushi Go!, Backgammon, Mario Party, Rocket League, Beer-pong.
+ [x] 4. Sous-pages : #/aide (menu) + #/aide/<gloire|niveaux|limites|succes|astuces|nouveautes) ; #/jeux (liste des catégories) + #/jeux/<catégorie>.
+ sw.js VERSION 1.3.0-pwa7 ; style.css (.newbdg, .sdet) ; test de syntaxe + calcul des succès OK (pas d'essai à l'écran sur téléphone).
+ Fichiers touchés : app.js, cat-limites.js, style.css, sw.js, REPRISE.txt.
+ Rappels : renvoyer ces fichiers sur GitHub, rouvrir l'appli 2 fois.
+ Idées restantes : vérifier avec les règles officielles les limites des jeux laissés sans plafond ; succès d'un autre joueur calculés sur ses parties lisibles seulement (stats publiques du cloud) ; recherche dans la liste des jeux.
+
+
+=== SESSION 5 (terminée) : demande = « reprends à REPRISE.txt » (idées restantes de la session 4) ===
+ [x] Recherche dans la liste des jeux : #/jeux a un champ « Chercher un jeu… » (nom ou catégorie, sans accents) ; app.js (jeux : gameDetail, jeuxSearchHtml ; écouteur input #qj), style.css (#jcats[hidden]).
+ sw.js VERSION 1.3.0-pwa8 ; test de syntaxe OK (pas d'essai à l'écran sur téléphone).
+ Fichiers touchés : app.js, style.css, sw.js, REPRISE.txt.
+ NON fait (nécessitent règles officielles / serveur) : limites des jeux laissés sans plafond ; succès d'un autre joueur via stats publiques du cloud.
+ Rappels : renvoyer ces fichiers sur GitHub, rouvrir l'appli 2 fois.
+
+=== SESSION 6 (terminée) : demande = « améliore les pages comme Plus, trop d'informations, c'est moche » ===
+ [x] Classement : en-tête réduit (période + 2 chiffres), liste des joueurs épurée (ligne cliquable vers le profil, plus de détails dépliés),
+     « Ton défi » -> sous-page #/classement/defi ; menu en bas (défi, par jeu, tous les profils).
+ [x] Profil : #/profil = avatar + nom + niveau + 3 chiffres + menu ; formulaire d'édition -> #/profil/modifier ; enregistrement revient sur #/profil.
+ [x] Accueil : carte « Haut du classement » retirée (doublon du Classement). Avatar sans emoji = 🎲 (au lieu de « undefined »).
+ sw.js VERSION 1.3.0-pwa9 ; style.css (.pl.lnk, .prof). Vérifié par captures d'écran au format téléphone (Playwright, fausses parties).
+ Fichiers touchés : app.js, style.css, sw.js, REPRISE.txt.
+ Idées : même découpage pour #/jeu/<id>, #/joueur/..., #/general, #/stats (pages encore denses, non revues), #/partie.
+ Rappels : renvoyer ces fichiers sur GitHub, rouvrir l'appli 2 fois.
+
+
+=== SESSION 7 (terminée) : demande = « fais tout ce que tu as proposé » (analyse des 113 jeux) ===
+ [x] Coop, équipes avec joueurs, feuilles de score, compléter 162, donneur, minuteur, mode TV, Elo par jeu, bilan de l'année,
+     catégorie en double, protection du DELETE serveur. Détail : début de LISEZ-MOI.txt. Fichiers : extras.js (nouveau), core.js, app.js,
+     server.js, cat-populaires2.js, index.html, sw.js (1.3.0-pwa10), style.css.
+ NON fait (à reprendre) : tableau de score partagé en direct (lien/QR, demande un serveur temps réel) ; saisie à la voix ou par photo ;
+   ligues / saisons / tournois à tableau / handicap ; nouveaux jeux jouables (Blackjack, Échecs, Dames, bataille navale, défi du jour) ;
+   assistants de manche pour Tarot, Cribbage, Skyjo (règle du double) ; découper app.js (88 Ko) ; simuler les 96 jeux restants.
+ Rappels : renvoyer tous les fichiers modifiés sur GitHub, rouvrir l'appli 2 fois.
+
+=== SESSION 8 (terminée) : +35 jeux familiaux dans cat-famille.js (voir LISEZ-MOI.txt). Vérifier les règles avec les boîtes de jeu. ===
+
+=== SESSION 9 (terminée) : demande = « Plus mieux trié et moins de lag » ===
+ [x] extras12.js : PAGES.plus reconstruit depuis une liste de 5 groupes (accordéon <details>), remplace les 9 ajouts en chaîne des extras*.js.
+ style.css (.pgrp), index.html, sw.js (2.5.0-pwa28), extras3.js (numéro de version). Syntaxe OK ; pas d'essai à l'écran.
+
+=== SESSION 10 (terminée) : demande = « rajoute des jeux entre potes et en famille » ===
+ [x] cat-ajouts.js : 35 jeux (12 C + 23 A). Aucun id ni nom en double (vérifié par script). index.html, sw.js (2.6.0-pwa29), extras3.js (n° de version).
+ Pas d'essai à l'écran. Idées : variantes (cat-variantes.js) et limites de manche (cat-limites.js) pour ces jeux.
+
+=== SESSION 11 (terminée) : demande = « trucs pour les soirées, catégories dans Que jouer ce soir, plus de jeux partout » ===
+ [x] cat-ajouts2.js : +75 jeux, catégories ajoutées : Enfants, Soirée entre potes, Quiz. Champs facultatifs par jeu : amb (fun|tete|fam|coop|air|apero|enfants) et dur (1|2|3).
+ [x] extras13.js : remplace PAGES.cesoir (filtre catégorie, ambiances Enfants/Potes) ; PAGES.soirees enrichi (Préparer une soirée, Palmarès, Distinctions).
+ index.html, sw.js (2.7.0-pwa30), extras3.js (n° de version). Testé dans un navigateur (Playwright, fausses parties) : aucune erreur.
+ Encore peu fournies : Combinaisons (2), Draft (2), Cartes (3). Idées : variantes (cat-variantes.js) et limites de manche (cat-limites.js) pour les nouveaux jeux.
+
+=== SESSION 12 (terminée) : demande = 2e vague de jeux + outils de soirée (tournoi, équipes au hasard, gages) + filtres dans « Que jouer ce soir ? » ===
+ [x] cat-ajouts3.js : +69 jeux (258 -> 327). Aucun id ni nom en double, aucun min/max/dp incohérent (vérifié par script).
+ [x] extras14.js : page #/soireeoutils (Plus > Entre amis > Outils de soirée) : équipes au hasard, tournoi à élimination directe (qualifiés d'office), gage au hasard (25 gages).
+ [x] extras13.js : filtre « Type de jeu » dans « Que jouer ce soir ? ».
+ index.html, sw.js (2.8.0-pwa31), extras12.js (menu), extras3.js (n° de version), LISEZ-MOI.txt. Syntaxe vérifiée ; pas d'essai à l'écran sur téléphone.
+ Idées : variantes (cat-variantes.js) et limites de manche (cat-limites.js) pour les nouveaux jeux ; tournoi sauvegardé entre deux ouvertures ; gages personnalisables.
+
+=== SESSION 12 (suite, terminée) : v2.8.1 ===
+ [x] cat-variantes-3.js (nouveau, branché index.html + sw.js) : variantes de 14 jeux de cat-ajouts3.js.
+ [x] cat-limites.js : plafonds pour 19 jeux à 1 point par manche/victoire (+ Écarté 3, Motus 2).
+ [x] extras14.js : tournoi sauvegardé (localStorage sm_tournoi). Testé en Node de 3 à 9 joueurs : un champion à chaque fois.
+ sw.js 2.8.1-pwa32. Pas d'essai à l'écran sur téléphone.
+ Idées : gages personnalisables ; variantes/limites des autres jeux de cat-ajouts3.js ; équipes enregistrées dans une partie.
+
+=== SESSION 12 (correctif) : v2.8.2 — chiffres collés dans Plus : style .pgrp injecté par extras12.js (#pgrp-css). Cause probable : style.css ancien en cache sur le téléphone. Pas d'essai à l'écran.
+
+=== SESSION 12 (v2.8.3) : Plus = sections visibles (extras12.js, classes .plg/.plt, style #pgrp-css). L'accordéon .pgrp de style.css n'est plus utilisé. Pas d'essai à l'écran.
+
+=== SESSION 12 (v2.8.4) : Plus = accordéon remis (extras12.js), mise en page injectée (#pgrp-css). Les sections fixes de la v2.8.3 sont abandonnées. Pas d'essai à l'écran.
+
+=== SESSION 12 (v2.8.5) : comptes = Supabase, config.js vide dans le zip. extras14.js : Cloud.cfg complété par localStorage sm_cloud_cfg + formulaire dans PAGES.compte (actions clsave/clclear). Testé en Node, pas sur Supabase réel (pas d'accès réseau ni de clés).
+
+=== SESSION 13 (v2.8.6) : PWABuilder / APK (erreurs « liens des icônes » et « types d'icônes ») ===
+ [x] server.js : un fichier manquant avec extension (.png, .js...) renvoie maintenant 404 au lieu de index.html (cause probable des erreurs PWABuilder :
+     une icône absente du site en ligne répondait « 200 text/html »). Types .ico .jpg .webp .txt ajoutés.
+ [x] manifest.json : icône SVG retirée (les 3 PNG suffisent), orientation, description corrigée, 3 captures (screenshots/*.jpg, 1080x1920, prises avec Playwright).
+ [x] sw.js 2.8.6-pwa37 : l'installation ne plante plus si un fichier manque (allSettled). extras3.js : v2.8.6.
+ Testé en local (Node + Chromium) : manifest/icônes 200 image/png, icône absente 404, service worker « activated », aucune erreur console.
+ A FAIRE par l'utilisateur : envoyer sur le site en ligne TOUT le dossier public, y compris icons/ ET screenshots/ ; ouvrir <site>/icons/icon-192.png (doit afficher le dé) ;
+   relancer le test sur pwabuilder.com. Ensuite Package for stores > Android. Pour le Play Store : assetlinks.json dans /.well-known/ (fourni par PWABuilder).

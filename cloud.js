@@ -1,16 +1,13 @@
 // Comptes joueurs (Supabase) : connexion par pseudo + mot de passe, sauvegarde en ligne par compte, classement général.
 // Sans configuration (config.js vide) : l'appli reste 100 % locale.
 const Cloud = {
-  SK: "sm_session", UK: "sm_uid", board: null, boardT: 0, boardErr: "", _pp: null, _last: "", msg: "",
+  SK: "sm_session", UK: "sm_uid", board: null, boardT: 0, boardErr: "", pc: {}, gc: {}, _pp: null, _last: "", msg: "",
   cfg() { const c = window.SM_CLOUD || {}; return c.url && c.key ? { url: c.url.replace(/\/+$/, ""), key: c.key } : null; },
   enabled() { return !!Cloud.cfg(); },
   session() { try { return JSON.parse(localStorage.getItem(Cloud.SK)); } catch (e) { return null; } },
   active() { return Cloud.enabled() && !!Cloud.session(); },
   pseudo() { const s = Cloud.session(); return s && s.pseudo || ""; },
-  slug: p => Core.norm(p).replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""),
-  email: p => Cloud.slug(p) + "@scoremaster.app",
-  _hid() { try { return new Set(JSON.parse(localStorage.getItem("sm_hidden")) || []); } catch (e) { return new Set(); } },
-  _hide(ids) { const h = Cloud._hid(); ids.forEach(i => h.add(i)); try { localStorage.setItem("sm_hidden", JSON.stringify([...h])); } catch (e) {} },
+  email: p => Core.norm(p).replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") + "@scoremaster.app",
   _store(d, pseudo) {
     const prev = Cloud.session() || {};
     const s = { access: d.access_token, refresh: d.refresh_token, exp: Date.now() + (d.expires_in || 3600) * 1000 - 60000, uid: (d.user && d.user.id) || prev.uid,
@@ -39,13 +36,13 @@ const Cloud = {
   },
   // ----- compte -----
   _wipeLocal() {
-    ["sm_parties", "sm_parties_pending", "sm_hidden", Core.SK, Core.SK + "_d", "sm_current_cartes", "sm_current_autres", Core.KEY].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
+    ["sm_parties", "sm_parties_pending", Core.SK, Core.SK + "_d", "sm_current_cartes", "sm_current_autres", Core.KEY].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
     Core.store = null; Core.dirty = {}; Core.hist = null; Core.histT = 0;
   },
   async _after(d, pseudo) {
     const s = Cloud._store(d, pseudo), last = localStorage.getItem(Cloud.UK);
     if (last && last !== s.uid) Cloud._wipeLocal();            // autre compte sur ce téléphone : on repart propre
-    else { Core._load(); Object.keys(Core.store).forEach(k => Core.dirty[k] = 1); Core._save(); Core._spq(Core._lp().filter(p => !p._shared).map(p => p.id)); }   // données locales rattachées au compte
+    else { Core._load(); Object.keys(Core.store).forEach(k => Core.dirty[k] = 1); Core._save(); Core._spq(Core._lp().map(p => p.id)); }   // données locales rattachées au compte
     try { localStorage.setItem(Cloud.UK, s.uid); } catch (e) {}
     if (!Core.me().nom) Core.setMe({ ...Core.me(), nom: s.pseudo });
     await Core.sync(); await Core.list(); Cloud.pushProfile(true); return s;
@@ -71,22 +68,12 @@ const Cloud = {
   async call(url, method, bodyText) {
     const uid = Cloud.session().uid, body = bodyText ? JSON.parse(bodyText) : null;
     if (url === "api/parties") {
-      if (method === "GET") {   // mes parties + celles où mon pseudo figure parmi les joueurs (le serveur filtre)
-        const rows = await Cloud.rest("GET", "parties?select=owner,data&order=updated_at.desc&limit=5000"), hid = Cloud._hid();
-        return rows.filter(r => r.owner === uid || !hid.has(r.data.id)).map(r => r.owner === uid ? r.data : { ...r.data, _shared: true });
-      }
-      if (method === "POST") {
-        const players = [...new Set((body.joueurs || []).map(n => Cloud.slug(typeof n === "string" ? n : (n && n.nom) || "")).filter(Boolean))];
-        const { _shared, ...clean } = body;
-        await Cloud.rest("POST", "parties?on_conflict=owner,id", { owner: uid, id: body.id, data: clean, players, updated_at: new Date().toISOString() }, { Prefer: "resolution=merge-duplicates,return=minimal" }); return { ok: true };
-      }
-      if (method === "DELETE") {
-        const rows = await Cloud.rest("GET", "parties?select=owner,data&limit=5000"); Cloud._hide(rows.filter(r => r.owner !== uid).map(r => r.data.id));
-        await Cloud.rest("DELETE", "parties?owner=eq." + uid, undefined, { Prefer: "return=minimal" }); return { ok: true };
-      }
+      if (method === "GET") { const rows = await Cloud.rest("GET", "parties?select=data&owner=eq." + uid + "&order=updated_at.desc&limit=5000"); return rows.map(r => r.data); }
+      if (method === "POST") { await Cloud.rest("POST", "parties?on_conflict=owner,id", { owner: uid, id: body.id, data: body, updated_at: new Date().toISOString() }, { Prefer: "resolution=merge-duplicates,return=minimal" }); return { ok: true }; }
+      if (method === "DELETE") { await Cloud.rest("DELETE", "parties?owner=eq." + uid, undefined, { Prefer: "return=minimal" }); return { ok: true }; }
     }
     const m = url.match(/^api\/parties\/(.+)$/);
-    if (m && method === "DELETE") { const id = decodeURIComponent(m[1]); Cloud._hide([id]); await Cloud.rest("DELETE", "parties?owner=eq." + uid + "&id=eq." + encodeURIComponent(id), undefined, { Prefer: "return=minimal" }); return { ok: true }; }
+    if (m && method === "DELETE") { await Cloud.rest("DELETE", "parties?owner=eq." + uid + "&id=eq." + encodeURIComponent(decodeURIComponent(m[1])), undefined, { Prefer: "return=minimal" }); return { ok: true }; }
     if (url === "api/settings") {
       const rows = await Cloud.rest("GET", "reglages?select=entries&user_id=eq." + uid), cur = (rows && rows[0] && rows[0].entries) || {};
       if (method === "GET") return { entries: cur };
@@ -99,7 +86,7 @@ const Cloud = {
   },
   // ----- classement général -----
   _mine() {
-    const me = Core.me(), nom = me.nom || Cloud.pseudo(), k = Core.norm(nom), out = {};
+    const me = Core.me(), nom = me.nom || Cloud.pseudo(), k = Core.norm(nom), out = { nom };
     ["cartes", "autres"].forEach(m => { const r = Core.stats(Core.hist || [], m).find(x => Core.norm(x.nom) === k); if (r) out[m] = { pg: r.pg, jouees: r.jouees, victoires: r.victoires, defaites: r.defaites, egalites: r.egalites, taux: r.taux, serie: r.serie, niveau: r.niveau }; });
     return out;
   },
@@ -114,6 +101,29 @@ const Cloud = {
       } catch (e) { /* hors ligne : réessayé plus tard */ }
     };
     if (now) return go(); Cloud._pp = setTimeout(go, 1500);
+  },
+  // profil d'un autre joueur : ses parties (celles de son compte + celles des autres comptes où son nom apparaît), lisibles par tous les joueurs connectés
+  async loadPlayer(uid, nom) {
+    const c = Cloud.pc[uid] || (Cloud.pc[uid] = { t: 0, parties: [], err: "", busy: false });
+    if (c.busy) return; c.busy = true; c.t = Date.now();
+    const sel = "parties?select=data&order=updated_at.desc&limit=2000";
+    try {
+      const own = await Cloud.rest("GET", sel + "&owner=eq." + uid);
+      let other = []; try { other = await Cloud.rest("GET", sel + "&owner=neq." + uid + "&" + encodeURIComponent("data->joueurs") + "=cs." + encodeURIComponent(JSON.stringify([nom]))) || []; } catch (e) {}
+      const seen = new Set(); c.parties = [...(own || []), ...other].map(r => r.data).filter(p => p && p.id && Array.isArray(p.joueurs) && Array.isArray(p.manches) && !seen.has(p.id) && seen.add(p.id));
+      c.err = "";
+    } catch (e) { c.err = "Impossible de charger ses parties (hors ligne ?)."; }
+    c.busy = false;
+  },
+  // toutes les parties d'un jeu (tous les comptes) pour son classement
+  async loadGame(jeu) {
+    const c = Cloud.gc[jeu] || (Cloud.gc[jeu] = { t: 0, parties: [], err: "", busy: false });
+    if (c.busy) return; c.busy = true; c.t = Date.now();
+    try {
+      const rows = await Cloud.rest("GET", "parties?select=data&limit=3000&" + encodeURIComponent("data->>jeu") + "=eq." + encodeURIComponent(jeu)), seen = new Set();
+      c.parties = (rows || []).map(r => r.data).filter(p => p && p.id && Array.isArray(p.joueurs) && Array.isArray(p.manches) && !seen.has(p.id) && seen.add(p.id)); c.err = "";
+    } catch (e) { c.err = "Parties des autres comptes indisponibles (hors ligne ?)."; }
+    c.busy = false;
   },
   async loadBoard() {
     Cloud.boardT = Date.now();

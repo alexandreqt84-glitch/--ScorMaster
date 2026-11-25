@@ -1,0 +1,26 @@
+ScoreMaster en application Android (PWA) — 3 étapes
+
+1) Mettre le site en ligne (GitHub Pages, gratuit)
+   - github.com > New repository > nom : scoremaster > Public > Create.
+   - "uploading an existing file" : décompresse scoremaster-pwa-github.zip et envoie TOUT
+     son contenu (y compris le dossier icons) à la racine du dépôt > Commit.
+   - Settings > Pages > Deploy from a branch > main > / (root) > Save.
+   - Attends 1-2 min : adresse https://TONPSEUDO.github.io/scoremaster/
+
+2) Installer sur le téléphone
+   - Chrome > ouvre l'adresse > menu ⋮ > "Installer l'application" (ou "Ajouter à l'écran d'accueil").
+
+3) Utilisation
+   - Fonctionne sans connexion. Parties, favoris, profil et records sont enregistrés SUR LE TÉLÉPHONE.
+   - Pense à "Exporter mes parties" (Paramètres) de temps en temps comme sauvegarde.
+   - Mise à jour : change VERSION dans sw.js, renvoie les fichiers sur GitHub, rouvre l'appli 2 fois.
+
+Le dossier server/ complet (avec Docker) reste utilisable si tu veux un serveur partagé : l'appli s'y synchronise alors toute seule.
+
+APK / Play Store avec PWABuilder (v2.8.6)
+   - Envoie TOUT le dossier public sur le site en ligne, y compris les dossiers icons/ et screenshots/ (un dossier oublié = erreur « liens des icônes »).
+   - Vérifie que https://TON-SITE/icons/icon-192.png affiche le dé violet (et non la page d'accueil).
+   - pwabuilder.com > ton adresse > le bouton « Package for stores » doit devenir actif > Android > télécharge l'APK/AAB.
+   - Pour le Play Store : place le fichier assetlinks.json fourni par PWABuilder dans /.well-known/assetlinks.json du site
+     (sur GitHub Pages, ajoute aussi un fichier vide nommé .nojekyll à la racine).
+   - L'appli dépend de ton site en ligne : garde l'adresse stable.

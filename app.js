@@ -13,7 +13,7 @@ const findGame = id => ALL.find(g => g.id === id) || [free("cartes"), free("autr
 const AVATARS = ["🎲", "🃏", "👑", "🦊", "🐼", "🦁", "🐙", "🚀", "⚡", "🔥", "🌈", "🍀"];
 
 const isMe = n => !!Core.me().nom && Core.norm(n) === Core.norm(Core.me().nom);
-const avatarHtml = me => me.photo ? `<img src="${me.photo}" alt="">` : me.emoji;
+const avatarHtml = me => me.photo ? `<img src="${me.photo}" alt="">` : (me.emoji || "🎲");
 const mini = n => isMe(n) ? `<span class="av mini">${avatarHtml(Core.me())}</span> ` : "";
 
 // Photo choisie : recadrée en carré 256 px, compressée (≈ 20 Ko)
@@ -73,7 +73,9 @@ const face = n => isMe(n) ? `<span class="av">${avatarHtml(Core.me())}</span>`
 const forme = f => `<span class="forme">${f.length ? f.map(r => `<i class="d ${r}" title="${{ V: "Victoire", D: "Défaite", E: "Égalité" }[r]}">${r}</i>`).join("") : "<small>—</small>"}</span>`;
 const xp = s => `<div class="xp"><div class="xpt"><b>${s.niveau.emoji} ${s.niveau.nom}</b><small>${s.niveau.next ? s.pg + " / " + s.niveau.next + " ⭐ → " + s.niveau.nextNom : s.pg + " ⭐ · niveau max !"}</small></div>
   <div class="bar"><i style="width:${s.niveau.pct}%"></i></div></div>`;
-const detailStats = (s, rang, other) => `${xp(s)}
+// succès débloqués d'un joueur à partir d'une liste de parties : [[emoji, nom, description], ...]
+const unlockedOf = (parties, nom) => { const all = Core.stats(parties), r = all.findIndex(x => Core.norm(x.nom) === Core.norm(nom)); return r < 0 ? [] : Core.badges(all[r], r, Core.extras(parties, nom)).filter(b => b[3]).map(b => [b[0], b[1], b[2]]); };
+const detailStats = (s, rang, other, parties) => `${xp(s)}
   <div class="kpis"><div><b>${s.victoires}</b><small>victoires</small></div><div><b>${s.defaites}</b><small>défaites</small></div><div><b>${s.meilleureSerie}</b><small>meilleure série</small></div></div>
   <div class="kpis"><div><b>${s.taux}%</b><small>réussite</small></div><div><b>${s.jouees}</b><small>parties</small></div><div><b>${s.moy}</b><small>points moy.</small></div></div>
   <div class="row"><span>Forme (5 dernières)</span>${forme(s.forme)}</div>
@@ -81,7 +83,7 @@ const detailStats = (s, rang, other) => `${xp(s)}
   ${s.meilleurJeu ? `<div class="row"><span>Jeu fétiche</span><b>${E(s.meilleurJeu)}</b></div>` : ""}
   ${s.nemesis ? `<div class="row"><span>😈 Bête noire</span><b>${E(s.nemesis.nom)} <small>(${s.nemesis.n}×)</small></b></div>` : ""}
   ${s.victime ? `<div class="row"><span>🎯 ${other ? "Il/elle domine" : "Tu domines"}</span><b>${E(s.victime.nom)} <small>(${s.victime.n}×)</small></b></div>` : ""}
-  <div class="badges">${Core.badges(s, rang).filter(b => b[3]).map(([e, n, d]) => `<span class="bdg" title="${E(d)}">${e} ${n}</span>`).join("") || "<small>Aucun succès débloqué pour l'instant.</small>"}</div>${other ? "" : `<a class="link" href="#/succes">🏆 Voir tous les succès →</a>`}`;
+  ${(() => { const un = Core.badges(s, rang, Core.extras(parties || S.hist, s.nom)).filter(b => b[3]); return `<div class="badges">${un.slice(-8).reverse().map(([e, n, d]) => `<span class="bdg" title="${E(d)}">${e} ${n}</span>`).join("") || "<small>Aucun succès débloqué pour l'instant.</small>"}${un.length > 8 ? `<small>+ ${un.length - 8} autres</small>` : ""}</div>`; })()}${other ? "" : `<a class="link" href="#/succes">🏆 Voir tous les succès →</a>`}`;
 // défi : combien de gloire pour passer devant / prendre le trône
 function defiHtml(byPg) {
   const me = Core.me(); if (!me.nom) return `<p>👤 Crée ton profil pour te mesurer aux autres et viser la 1<sup>re</sup> place.</p><a class="btn main" href="#/profil">Créer mon profil</a>`;
@@ -195,8 +197,14 @@ function jeuDuJour(m) {
 // résultat d'un joueur dans une partie : V / D / E (égalité) / S (solo), rang et score
 function resultOf(p, nom) {
   const k = Core.norm(nom), i = p.joueurs.findIndex(n => Core.norm(n) === k); if (i < 0) return null;
-  const t = Core.totals(p), n = p.joueurs.length, rk = t.map(v => 1 + t.filter(w => p.low ? w < v : w > v).length), tops = rk.filter(x => x === 1).length;
+  const t = Core.totals(p), n = p.joueurs.length, rk = Core.rank(p, t).rk, tops = Core.rank(p, t).tops;
   return { i, n, rang: rk[i], score: t[i], res: n < 2 ? "S" : rk[i] === 1 && tops === 1 ? "V" : rk[i] === 1 ? "E" : "D" };
+}
+// succès d'un autre joueur (calculés à partir de ses parties lisibles) : une ligne par catégorie, dépliable
+function succesCard(st, rang, parties, nom) {
+  const bs = Core.badges(st, rang, Core.extras(parties, nom)), got = bs.filter(b => b[3]).length;
+  return `<section class="card"><h2>🏆 Ses succès</h2><p><b>${got}</b> sur ${bs.length}</p><div class="bar big"><i style="width:${Math.round(100 * got / bs.length)}%"></i></div>
+    ${Core.ACH_CATS.map(([k, e, t]) => { const l = bs.filter(x => x[5] === k), g = l.filter(x => x[3]).length; return `<details class="sdet"><summary><span>${e} ${t}</span><b>${g}/${l.length}</b></summary><div class="badges">${l.map(([e2, n, d, ok]) => `<span class="bdg ${ok ? "" : "off"}" title="${E(d)}">${e2} ${n}</span>`).join("")}</div></details>`; }).join("")}</section>`;
 }
 function joueurView(nom, avatarHtmlStr, parties, board, info) {
   const k = Core.norm(nom), fin = parties.filter(p => p.fini && p.joueurs.some(n => Core.norm(n) === k)).sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -210,7 +218,8 @@ function joueurView(nom, avatarHtmlStr, parties, board, info) {
     .filter(Boolean).sort((a, b) => (b.v + b.d) - (a.v + a.d)).slice(0, 6) : [];
   const shown = fin.filter(p => S.filter === "tout" || inMode(p, S.filter)), max = S.pmax || 30;
   return `${head}
-    ${st ? `<section class="card"><h2>📊 Statistiques</h2>${detailStats(st, -1, true)}</section>
+    ${st ? `<section class="card"><h2>📊 Statistiques</h2>${detailStats(st, all.indexOf(st), true, parties)}</section>
+    ${succesCard(st, all.indexOf(st), parties, nom)}
     <section class="card"><h2>📈 Évolution de sa gloire</h2>${spark(pr.evo)}</section>
     <section class="card"><h2>🎛️ Par mode</h2><div class="mboxes">${modeBox("cartes", sc)}${modeBox("autres", sa)}</div></section>` : ""}
     ${games.length ? `<section class="card"><h2>🎮 Ses jeux</h2><div class="scroll"><table class="tbl left"><thead><tr><th>Jeu</th><th>Parties</th><th>🏆</th><th>Réussite</th></tr></thead><tbody>${games.map(g => `<tr><td>${E(g.j)}</td><td>${g.n}</td><td>${g.v}</td><td>${g.n ? Math.round(100 * g.v / g.n) : 0} %</td></tr>`).join("")}</tbody></table></div></section>` : ""}
@@ -248,8 +257,6 @@ const PAGES = {
       <a class="btn main" href="#/partie">▶️ Reprendre la partie</a></section>` : ""}
     ${dj ? `<section class="card daily"><h2>🌟 Jeu du jour</h2><div class="dj"><span class="djicon">${dj.emoji}</span><div><b>${E(dj.name)}</b><small>${dj.solo ? "Solo · bats ton record" : nbJoueurs(dj)}${dj.play ? " · jouable ici" : ""}</small></div></div>
       <button class="btn" data-a="play" data-v="${dj.id}">${dj.solo ? "▶️ Jouer maintenant" : "🎮 Lancer ce jeu"}</button></section>` : ""}
-    ${all.length ? `<section class="card"><h2>🏅 Haut du classement ${MODES[m].emoji}</h2>${all.slice(0, 3).map((x, k) => `<div class="minirk"><span>${["🥇", "🥈", "🥉"][k]}</span>${face(x.nom)}<b>${plink(x.nom)}</b><em>${x.pg} ⭐</em></div>`).join("")}
-      <a class="btn" href="#/classement">Voir tout le classement</a></section>` : ""}
     <section class="card"><h2>Dernières parties ${MODES[m].emoji}</h2>${recent.map(p => `<div class="recent"><span>${p.emoji} ${E(p.jeu)} <small>${dateFr(p.date)}</small></span>
       <b>🏆 ${E(Core.ranking(p)[0].nom)}</b></div>`).join("") || "Aucune partie enregistrée."}${recent.length ? `<a class="btn" href="#/historique">📜 Tout l'historique</a>` : ""}</section>`;
   },
@@ -260,11 +267,15 @@ const PAGES = {
       <input id="q" type="search" placeholder="🔍 Rechercher un jeu…" value="${E(S.q)}" autocomplete="off">
       <div class="picker" id="picker">${pickerHtml()}</div><div id="setup">${setupHtml()}</div></section>`; },
 
-  plus: () => `<section class="card menu"><h2>Plus</h2>
-      <a href="#/jeux"><i>📚</i>Jeux et règles</a><a href="#/historique"><i>📜</i>Historique</a>
-      <a href="#/stats"><i>📊</i>Statistiques</a><a href="#/succes"><i>🏆</i>Succès</a>
-      <a href="#/joueurs"><i>🧑‍🤝‍🧑</i>Joueurs</a><a href="#/general"><i>🌍</i>Classement général</a><a href="#/compte"><i>👥</i>Mon compte</a>
-      <a href="#/aide"><i>💡</i>Aide et nouveautés</a><a href="#/parametres"><i>⚙️</i>Paramètres</a></section>`,
+  plus: () => `<section class="card"><h1>Plus</h1></section>
+      <section class="card nav"><h2>🎮 Jeux</h2>
+        <a href="#/jeux"><i>📚</i><span>Jeux et règles</span><u>›</u></a><a href="#/historique"><i>📜</i><span>Historique</span><u>›</u></a></section>
+      <section class="card nav"><h2>📊 Mes résultats</h2>
+        <a href="#/stats"><i>📊</i><span>Statistiques</span><u>›</u></a><a href="#/succes"><i>🏆</i><span>Succès</span><u>›</u></a></section>
+      <section class="card nav"><h2>🌍 Communauté</h2>
+        <a href="#/joueurs"><i>🧑‍🤝‍🧑</i><span>Joueurs</span><u>›</u></a><a href="#/general"><i>🌍</i><span>Classement général</span><u>›</u></a><a href="#/compte"><i>👥</i><span>Mon compte</span><u>›</u></a></section>
+      <section class="card nav"><h2>🛠️ Application</h2>
+        <a href="#/parametres"><i>⚙️</i><span>Paramètres</span><u>›</u></a><a href="#/aide"><i>💡</i><span>Aide et nouveautés</span><u>›</u></a></section>`,
 
   compte: () => {
     if (!Cloud.enabled()) return `${backPlus}<section class="card"><h1>👥 Comptes joueurs</h1><p>Les comptes ne sont pas encore activés sur cette installation. Ton jeu fonctionne normalement, avec les données gardées sur ce téléphone.</p></section>`;
@@ -374,26 +385,49 @@ const PAGES = {
   succes: () => {
     const me = Core.me(), all = Core.stats(S.hist), rang = all.findIndex(x => Core.norm(x.nom) === Core.norm(me.nom)), st = all[rang];
     if (!st) return `${backPlus}<section class="card empty"><h1>🏆 Succès</h1><p>${me.nom ? "Termine une partie sous le nom <b>" + E(me.nom) + "</b> pour débloquer tes premiers succès." : "Crée ton profil pour débloquer des succès."}</p><a class="btn main" href="${me.nom ? "#/nouvelle" : "#/profil"}">${me.nom ? "🎮 Jouer maintenant" : "👤 Créer mon profil"}</a></section>`;
-    const bs = Core.badges(st, rang), got = bs.filter(x => x[3]).length;
+    const bs = Core.badges(st, rang, Core.extras(S.hist, me.nom)), got = bs.filter(x => x[3]).length, cat = location.hash.split("/")[2];
+    const card = ([e, n, d, ok, pr]) => `<div class="a ${ok ? "ok" : ""}"><span>${e}</span><b>${n}</b><small>${d}</small>${ok ? `<small class="gain">✔ Débloqué</small>` : `<div class="bar"><i style="width:${Math.min(100, Math.round(100 * pr[0] / pr[1]))}%"></i></div><small>${pr[0]} / ${pr[1]}</small>`}</div>`;
+    const c = Core.ACH_CATS.find(x => x[0] === cat);
+    if (c) { const l = bs.filter(x => x[5] === cat), g = l.filter(x => x[3]).length;
+      return `<a class="back" href="#/succes">← Succès</a><section class="card"><h1>${c[1]} ${c[2]}</h1><p><b>${g}</b> sur ${l.length} débloqué${g > 1 ? "s" : ""}</p><div class="bar big"><i style="width:${Math.round(100 * g / l.length)}%"></i></div></section><div class="ach">${l.map(card).join("")}</div>`; }
+    // à venir : les 3 succès non débloqués les plus avancés
+    const next = bs.filter(x => !x[3]).sort((a, b) => b[4][0] / b[4][1] - a[4][0] / a[4][1]).slice(0, 3);
     return `${backPlus}<section class="card"><h1>🏆 Succès</h1><p><b>${got}</b> débloqué${got > 1 ? "s" : ""} sur ${bs.length}</p><div class="bar big"><i style="width:${Math.round(100 * got / bs.length)}%"></i></div></section>
-      <div class="ach">${bs.map(([e, n, d, ok, pr]) => `<div class="a ${ok ? "ok" : ""}"><span>${e}</span><b>${n}</b><small>${d}</small>${pr && !ok ? `<div class="bar"><i style="width:${Math.min(100, Math.round(100 * pr[0] / pr[1]))}%"></i></div><small>${pr[0]} / ${pr[1]}</small>` : ok ? `<small class="gain">✔ Débloqué</small>` : ""}</div>`).join("")}</div>`;
+      ${next.length ? `<section class="card"><h2>🎯 Bientôt débloqués</h2><div class="ach one">${next.map(card).join("")}</div></section>` : `<section class="card"><h2>🎉 Tout est débloqué !</h2><p>Bravo, tu as tous les succès.</p></section>`}
+      <section class="card nav"><h2>Par catégorie</h2>${Core.ACH_CATS.map(([k, e, t]) => { const l = bs.filter(x => x[5] === k), g = l.filter(x => x[3]).length; return `<a href="#/succes/${k}"><i>${e}</i><span>${t}</span><b>${g}/${l.length}</b><u>›</u></a>`; }).join("")}</section>`;
   },
 
-  aide: () => `${backPlus}<section class="card"><h1>💡 Aide et nouveautés</h1><p>ScoreMaster v${Core.VERSION}</p>
-      <details open><summary>⭐ Comment fonctionne la gloire ?</summary><p>+2 par partie jouée.</p><p>Victoire : +8, plus +2 par adversaire (maximum 8).</p><p>Égalité en tête : la moitié d'une victoire. 2e place à 3 joueurs ou plus : +1 par joueur.</p><p>Série de victoires : +2 de plus à chaque victoire d'affilée (maximum +10).</p></details>
-      <details><summary>🎖️ Les niveaux</summary>${Core.LEVELS.map(l => `<div class="row"><span>${l[2]} ${l[1]}</span><b>${l[0]} ⭐</b></div>`).join("")}</details>
-      <details><summary>🧭 Astuces</summary><p>⭐ sur un jeu = favori, il passe en tête de liste.</p><p>Les noms récents se remplissent d'un appui.</p><p>« Annuler la dernière manche » corrige une faute de saisie.</p><p>Touche une manche du tableau pour la modifier.</p><p>Les boutons − et + changent le score de 1.</p></details>
-      <details><summary>🆕 Nouveautés de la ${Core.VERSION}</summary><p>Nouveau thème sombre animé, couleurs différentes selon la page.</p><p>Classement avec gloire, niveaux, podium et défi.</p><p>Profil complet, succès, statistiques.</p><p>Favoris, joueurs récents, préférences, rejouer et partager.</p></details></section>`,
+  aide: () => {
+    const sub = decodeURIComponent(location.hash.slice(2).split("/")[1] || ""), V = Core.VERSION;
+    const P = {
+      gloire: ["⭐", "Comment fonctionne la gloire ?", `<p>+2 par partie jouée.</p><p>Victoire : +8, plus +2 par adversaire (maximum 8).</p><p>Égalité en tête : la moitié d'une victoire. 2e place à 3 joueurs ou plus : +1 par joueur.</p><p>Série de victoires : +2 de plus à chaque victoire d'affilée (maximum +10).</p>`],
+      niveaux: ["🎖️", "Les niveaux", Core.LEVELS.map(l => `<div class="row"><span>${l[2]} ${l[1]}</span><b>${l[0]} ⭐</b></div>`).join("")],
+      limites: ["📏", "Limites de points par manche", `<p>Au début d'une partie, la limite se règle toute seule d'après les règles du jeu (ou à la main).</p><p>Au-dessus de la limite, la manche est refusée : c'est surtout une protection contre les fautes de frappe.</p><p>Un « score inhabituel » demande seulement une confirmation.</p><p>Les jeux sans plafond dans leurs règles n'ont pas de limite automatique : tu peux en fixer une à la main.</p>`],
+      succes: ["🏆", "Les succès", `<p>${Core.badges({ jeux: {}, vic: {}, pg: 0, jouees: 0, victoires: 0, meilleureSerie: 0, multi: 0 }, -1, {}).length} succès à débloquer, rangés par catégorie (menu Plus › Succès).</p><p>À la fin d'une partie, les succès débloqués s'affichent sur l'écran de fin.</p><p>Tu peux aussi voir les succès des autres joueurs sur leur profil.</p>`],
+      astuces: ["🧭", "Astuces", `<p>⭐ sur un jeu = favori, il passe en tête de liste.</p><p>Les noms récents se remplissent d'un appui.</p><p>« Annuler la dernière manche » corrige une faute de saisie.</p><p>Touche une manche du tableau pour la modifier.</p><p>Les boutons − et + changent le score de 1.</p>`],
+      nouveautes: ["🆕", "Nouveautés de la " + V, `<p>Notification des succès débloqués en fin de partie.</p><p>Succès visibles sur le profil des autres joueurs.</p><p>Limites de points par manche pour les jeux populaires ajoutés.</p><p>Aide et Jeux et règles découpés en sous-pages.</p><p>Recherche d'un jeu par son nom dans Jeux et règles.</p><p>Avant : classement par jeu, profils des joueurs, 40 jeux populaires, variantes, succès par catégorie.</p>`]
+    };
+    if (P[sub]) { const [e, t, h] = P[sub]; return `<a class="back" href="#/aide">← Aide</a><section class="card"><h1>${e} ${t}</h1>${h}</section>`; }
+    return `${backPlus}<section class="card"><h1>💡 Aide et nouveautés</h1><p>ScoreMaster v${V}</p></section>
+      <section class="card nav">${Object.entries(P).map(([k, [e, t]]) => `<a href="#/aide/${k}"><i>${e}</i><span>${t}</span><u>›</u></a>`).join("")}</section>`;
+  },
 
   jeux: () => {
-    const m = Core.mode(), games = gamesOf(m).filter(g => !g.id.startsWith("libre"));
-    const cats = [...new Set(games.map(g => g.cat))];
-    return `${backPlus}<section class="card"><h1>${MODES[m].emoji} Jeux et règles</h1><p>${games.length} jeux en mode ${MODES[m].nom}. Change de mode avec le bouton du haut.</p></section>` +
-      cats.map(c => `<section class="card"><h2>${E(c)}</h2>${games.filter(g => g.cat === c).map(g => `<details><summary>${g.emoji} ${E(g.name)} <small>· ${g.solo ? "solo" : nbJoueurs(g)}${g.play ? " · ▶️ jouable" : ""}</small></summary>
+    const gameDetail = g => `<details><summary>${g.emoji} ${E(g.name)} <small>· ${g.solo ? "solo" : nbJoueurs(g)}${g.play ? " · ▶️ jouable" : ""}</small></summary>
         ${[...(g.rules || []), ...(g.scoring || []), ...(g.winner || [])].map(x => `<p>${E(x)}</p>`).join("")}
         ${(g.variants || []).map(x => `<p>🧩 <b>${E(x[0])}</b> : ${E(x[1])}</p>`).join("")}
         ${(l => l ? `<p>📏 Limite par manche (automatique) : <b>${l} points</b></p>` : "")(limiteAuto(g, null, g.dp || 2))}
-        <div class="row2"><button class="btn" data-a="play" data-v="${g.id}">🎮 Jouer</button><a class="btn" href="#/jeu/${g.id}">🏅 Classement</a></div></details>`).join("")}</section>`).join("");
+        <div class="row2"><button class="btn" data-a="play" data-v="${g.id}">🎮 Jouer</button><a class="btn" href="#/jeu/${g.id}">🏅 Classement</a></div></details>`;
+    window.jeuxSearchHtml = q => { const n = Core.norm(q); if (!n) return ""; const r = gamesOf(Core.mode()).filter(g => !g.id.startsWith("libre") && Core.norm(g.name + " " + g.cat).includes(n)).slice(0, 40); return r.length ? `<section class="card"><h2>${r.length} résultat${r.length > 1 ? "s" : ""}</h2>${r.map(gameDetail).join("")}</section>` : `<section class="card empty"><p>Aucun jeu trouvé.</p></section>`; };
+    const m = Core.mode(), games = gamesOf(m).filter(g => !g.id.startsWith("libre")), cats = [...new Set(games.map(g => g.cat))];
+    const sub = decodeURIComponent(location.hash.slice(2).split("/")[1] || ""), cat = cats.find(c => c === sub);
+    if (cat) {
+      return `<a class="back" href="#/jeux">← Jeux et règles</a><section class="card"><h1>${MODES[m].emoji} ${E(cat)}</h1><p>${games.filter(g => g.cat === cat).length} jeux</p></section>
+        <section class="card">${games.filter(g => g.cat === cat).map(gameDetail).join("")}</section>`;
+    }
+    return `${backPlus}<section class="card"><h1>${MODES[m].emoji} Jeux et règles</h1><p>${games.length} jeux en mode ${MODES[m].nom}, rangés par catégorie. Change de mode avec le bouton du haut.</p>
+      <input id="qj" type="search" placeholder="🔎 Chercher un jeu…" autocomplete="off"></section><div id="jres"></div>
+      <section class="card nav" id="jcats">${cats.map(c => `<a href="#/jeux/${encodeURIComponent(c)}"><i>${games.find(g => g.cat === c).emoji}</i><span>${E(c)}</span><b>${games.filter(g => g.cat === c).length}</b><u>›</u></a>`).join("")}</section>`;
   },
 
   partie: () => {
@@ -433,7 +467,7 @@ const PAGES = {
     const gl = gloire(p), r = Core.ranking(p), win = Core.leaders(p).map(i => p.joueurs[i]).join(" & ");
     return `<section class="card"><div class="trophy">🏆</div><h1 style="text-align:center">${E(win)}</h1>
       <p style="text-align:center">gagne à ${p.emoji} ${E(p.jeu)}</p>${gl.banner}${r.map((x, k) => `<div class="rk"><span>${["🥇", "🥈", "🥉"][k] || k + 1}</span><b>${plink(x.nom)}${gl.gain(x.nom)}</b><em>${x.total}</em></div>`).join("")}
-      <button class="btn main" data-a="again">🔁 Rejouer avec les mêmes joueurs</button><button class="btn" data-a="share">📤 Partager le résultat</button><a class="btn" href="#/nouvelle">🎮 Nouvelle partie</a><a class="btn" href="#/historique">📜 Historique</a></section>`;
+      ${(S.newBadges || []).length ? `<div class="newbdg ach one"><b>🏆 ${S.newBadges.length > 1 ? "Succès débloqués" : "Succès débloqué"} !</b>${S.newBadges.map(([e, n, d]) => `<div class="a ok"><span>${e}</span><b>${n}</b><small>${d}</small></div>`).join("")}<a class="link" href="#/succes">Voir tous mes succès →</a></div>` : ""}<button class="btn main" data-a="again">🔁 Rejouer avec les mêmes joueurs</button><button class="btn" data-a="share">📤 Partager le résultat</button><a class="btn" href="#/nouvelle">🎮 Nouvelle partie</a><a class="btn" href="#/historique">📜 Historique</a></section>`;
   },
 
   historique: () => {
@@ -450,55 +484,60 @@ const PAGES = {
   classement: () => {
     const mode = Core.mode(), days = S.per === "tout" ? 0 : Number(S.per);
     const byPg = Core.stats(S.hist, mode, days), st = [...byPg].sort(SORT[S.sort]), list = histFiltered().filter(inPer);
+    if (location.hash.split("/")[2] === "defi") return `<a class="back" href="#/classement">← Classement</a><section class="card"><h1>⚔️ Ton défi</h1>${defiHtml(byPg)}</section>
+      <section class="card"><h2>⭐ Comment gagner de la gloire ?</h2><p>+2 par partie jouée.</p><p>Victoire : +8, plus +2 par adversaire.</p><p>Série de victoires : bonus à chaque victoire d'affilée.</p></section>`;
     const games = {}; list.forEach(p => games[p.jeu] = (games[p.jeu] || 0) + 1);
     const king = byPg[0], val = x => S.sort === "vic" ? x.victoires + " 🏆" : S.sort === "taux" ? x.taux + " %" : x.pg + " ⭐";
     const pod = [1, 0, 2].map(k => { const x = st[k]; return x ? `<div class="pod p${k + 1}"><span class="pav">${k === 0 ? `<i class="crown">👑</i>` : ""}${face(x.nom)}</span><b>${plink(x.nom)}</b><small>${val(x)}</small><div class="blk"><span>${k + 1}</span></div></div>` : `<div class="pod"></div>`; }).join("");
-    return `${back}<section class="card"><h1>🏅 Classement ${MODES[mode].emoji}</h1><p><small>Mode ${MODES[mode].nom} uniquement.</small></p><div class="row2"><a class="btn" href="#/parjeu">🎮 Par jeu</a><a class="btn" href="#/joueurs">👥 Joueurs</a></div>${chipRow(PERS, "per", S.per)}
-      <div class="kpis"><div><b>${list.length}</b><small>parties</small></div><div><b>${st.length}</b><small>joueurs</small></div><div><b>${E(Core.favori(games))}</b><small>jeu favori</small></div></div></section>
+    return `${back}<section class="card"><h1>🏅 Classement ${MODES[mode].emoji}</h1>${chipRow(PERS, "per", S.per)}
+      <div class="kpis"><div><b>${list.length}</b><small>parties</small></div><div><b>${st.length}</b><small>joueurs</small></div></div></section>
     ${king ? `<section class="card throne"><div class="crownbig">👑</div><h2>${S.per === "7" ? "Roi de la semaine" : S.per === "30" ? "Roi du mois" : "Roi de la colline"}</h2>
-        <div class="kingline"><div><b>${plink(king.nom)}</b><small>${king.niveau.emoji} ${king.niveau.nom} · ${king.pg} ⭐${king.serie >= 2 ? " · 🔥 " + king.serie + " victoires d'affilée" : ""}</small></div></div>
+        <div class="kingline"><div><b>${plink(king.nom)}</b><small>${king.niveau.emoji} ${king.niveau.nom} · ${king.pg} ⭐</small></div></div>
         <div class="podium">${pod}</div></section>` : ""}
-    <section class="card"><h2>⚔️ Ton défi</h2>${defiHtml(byPg)}<small class="gl">⭐ Gloire : +2 par partie, victoire +8 (+2 par adversaire), série de victoires en bonus.</small></section>
-    <section class="card"><h2>Classement des joueurs</h2>${chipRow(SORTS, "sort", S.sort)}<div class="list">${st.map((s, k) => `<details class="pl ${k === 0 ? "king" : ""}"><summary>
-        <span class="pos">${["🥇", "🥈", "🥉"][k] || k + 1}</span>${face(s.nom)}<span class="who"><b>${E(s.nom)}${byPg[0] === s ? " 👑" : ""}</b><small>${s.niveau.emoji} ${s.niveau.nom} · ${s.jouees} partie(s) · ${s.taux} %</small></span>${forme(s.forme.slice(-3))}<em>${val(s)}</em></summary>
-        <div class="pbody">${detailStats(s, byPg.indexOf(s))}<a class="btn" href="${pHref(s.nom)}">👤 Voir le profil de ${E(s.nom)}</a></div></details>`).join("")
-        || `<p class="empty">Termine une partie pour voir le classement.</p>`}</div></section>`;
+    <section class="card"><h2>Tous les joueurs</h2>${chipRow(SORTS, "sort", S.sort)}<div class="list">${st.map((s, k) => `<a class="pl lnk ${k === 0 ? "king" : ""}" href="${pHref(s.nom)}">
+        <span class="pos">${["🥇", "🥈", "🥉"][k] || k + 1}</span>${face(s.nom)}<span class="who"><b>${E(s.nom)}${byPg[0] === s ? " 👑" : ""}</b><small>${s.niveau.emoji} ${s.niveau.nom}</small></span><em>${val(s)}</em></a>`).join("")
+        || `<p class="empty">Termine une partie pour voir le classement.</p>`}</div></section>
+    <section class="card nav"><a href="#/classement/defi"><i>⚔️</i><span>Ton défi<small>Où tu en es face au roi</small></span><u>›</u></a><a href="#/parjeu"><i>🎮</i><span>Classement par jeu</span><u>›</u></a><a href="#/joueurs"><i>👥</i><span>Tous les profils</span><u>›</u></a></section>`;
   },
 
   profil: () => {
     const me = Core.me(), all = Core.stats(S.hist), rang = all.findIndex(s => Core.norm(s.nom) === Core.norm(me.nom)), st = all[rang];
-    return `${back}<section class="card"><h1>👤 Mon profil</h1>
+    if (location.hash.split("/")[2] === "stats" && st) return `<a class="back" href="#/profil">← Mon profil</a>${profilStats(me, all, rang, st)}`;
+    if (location.hash.split("/")[2] === "modifier") return `<a class="back" href="#/profil">← Mon profil</a><section class="card"><h1>✏️ Modifier mon profil</h1>
       <div class="av big">${avatarHtml(me)}</div>
       <label for="photoFile" class="btn">📷 ${me.photo ? "Changer la photo" : "Importer une photo"}</label>
       <input id="photoFile" type="file" accept="image/*" hidden>
       ${me.photo ? `<button class="btn danger" data-a="rmphoto">🗑️ Retirer la photo</button>` : ""}
       <label for="meName" style="margin-top:18px">Mon nom</label><input id="meName" value="${E(me.nom)}" placeholder="Ton prénom" autocomplete="off">
       <label>Ou choisis un avatar</label><div class="emojis">${AVATARS.map(a => `<button data-a="avatar" data-v="${a}" class="${!me.photo && a === me.emoji ? "on" : ""}">${a}</button>`).join("")}</div>
-      <button class="btn main" data-a="saveme">💾 Enregistrer</button></section>
-    ${st ? profilStats(me, all, rang, st) : `<section class="card empty"><h2>📊 Mes statistiques</h2><p>${me.nom ? "Termine une partie sous le nom <b>" + E(me.nom) + "</b> pour voir tes statistiques ici." : "Enregistre ton nom ci-dessus pour suivre tes statistiques."}</p><a class="btn main" href="#/nouvelle">🎮 Jouer maintenant</a></section>`}`;
+      <button class="btn main" data-a="saveme">💾 Enregistrer</button></section>`;
+    return `${back}<section class="card prof"><div class="av big">${avatarHtml(me)}</div><h1>${me.nom ? E(me.nom) : "Mon profil"}</h1>${st ? `<p>${st.niveau.emoji} ${st.niveau.nom}</p><div class="kpis"><div><b>${st.pg}</b><small>⭐ gloire</small></div><div><b>${st.jouees}</b><small>parties</small></div><div><b>${st.victoires}</b><small>victoires</small></div></div>` : `<p><small>${me.nom ? "Termine une partie sous le nom " + E(me.nom) + " pour voir tes stats." : "Ajoute ton nom pour suivre tes stats."}</small></p>`}</section>
+    <section class="card nav"><a href="#/profil/modifier"><i>✏️</i><span>Modifier mon profil<small>Nom, photo, avatar</small></span><u>›</u></a>${st ? `<a href="#/profil/stats"><i>📊</i><span>Mes statistiques<small>Records, jeux, rivaux</small></span><u>›</u></a>` : ""}<a href="#/succes"><i>🏆</i><span>Mes succès</span><u>›</u></a></section>`;
   },
 
   parametres: () => {
-    const done = S.hist.filter(p => p.fini).length;
-    return `${backPlus}<section class="card"><h1>⚙️ Paramètres</h1><p>Gère les données et les options de ScoreMaster.</p></section>
-    <section class="card"><h2>📱 Application</h2>
-      <div class="row"><span>Nom</span><b>ScoreMaster</b></div>
-      <div class="row"><span>Version</span><b>${Core.VERSION}</b></div>
-      <div class="row"><span>Stockage</span><b>${done} partie${done > 1 ? "s" : ""}</b></div>
-      <div class="row"><span>Mode actuel</span><b>${MODES[Core.mode()].emoji} ${MODES[Core.mode()].nom}</b></div></section>
-    <section class="card"><h2>🎛️ Préférences</h2>${[["sound", "🔊", "Sons des jeux"], ["haptic", "📳", "Vibrations légères"], ["fond", "✨", "Fond et effets animés"], ["confetti", "🎉", "Confettis de victoire"], ["grand", "🔠", "Texte plus grand"], ["veille", "💡", "Écran allumé pendant une partie"]]
-      .map(([k, e, t]) => `<button class="sw ${Core.opt(k) ? "on" : ""}" data-a="opt" data-v="${k}" role="switch" aria-checked="${!!Core.opt(k)}"><span>${e} ${t}</span><i></i></button>`).join("")}
-      <small>Ces réglages sont sauvegardés sur ton téléphone (et partagés entre appareils si un serveur est branché).</small></section>
-    <section class="card"><h2>☁️ Sauvegarde des réglages</h2><p>Favoris, préférences, profil, records et derniers réglages de chaque jeu sont gardés sur ton téléphone. Si tu as un serveur ScoreMaster, ils y sont aussi copiés.</p>
-      <div class="row"><span>État</span><b>${Core.status === "ok" && !Core.pending() ? "✅ À jour" : Core.status === "off" ? "📱 Enregistré sur le téléphone" + (Core.pending() ? " (" + Core.pending() + " en attente)" : "") : "⏳ En cours…"}</b></div>
-      <div class="row"><span>Favoris</span><b>${Core.favs().length}</b></div>
-      <button class="btn" data-a="sync">🔄 Synchroniser maintenant</button></section>
-    <section class="card"><h2>💾 Données</h2><p>Sauvegarde tes parties dans un fichier ou restaure une sauvegarde précédente (les anciennes sauvegardes ScoreMaster sont acceptées).</p>
-      <button class="btn" data-a="export">📤 Exporter mes parties</button>
-      <label for="importFile" class="btn">📥 Importer une sauvegarde</label>
-      <input id="importFile" type="file" accept=".json,application/json" hidden></section>
-    <section class="card danger"><h2>⚠️ Zone dangereuse</h2><p>La suppression de l'historique est définitive.</p>
-      <button class="btn danger" data-a="wipe">🗑️ Supprimer toutes les parties</button></section>`;
+    const done = S.hist.filter(p => p.fini).length, sub = location.hash.split("/")[2], backP = `<a class="back" href="#/parametres">← Paramètres</a>`;
+    const sync = Core.status === "ok" && !Core.pending() ? "✅ À jour" : Core.status === "off" ? "📱 Sur le téléphone" + (Core.pending() ? " (" + Core.pending() + " en attente)" : "") : "⏳ En cours…";
+    if (sub === "prefs") return `${backP}<section class="card"><h1>🎛️ Préférences</h1><p><small>Touche un réglage pour l'activer ou le couper.</small></p>${[["sound", "🔊", "Sons des jeux"], ["haptic", "📳", "Vibrations légères"], ["fond", "✨", "Fond et effets animés"], ["confetti", "🎉", "Confettis de victoire"], ["grand", "🔠", "Texte plus grand"], ["veille", "💡", "Écran allumé pendant une partie"]]
+      .map(([k, e, t]) => `<button class="sw ${Core.opt(k) ? "on" : ""}" data-a="opt" data-v="${k}" role="switch" aria-checked="${!!Core.opt(k)}"><span>${e} ${t}</span><i></i></button>`).join("")}</section>`;
+    if (sub === "sauvegarde") return `${backP}<section class="card"><h1>☁️ Synchronisation</h1><p>Tes favoris, préférences, profil et records sont gardés sur ton téléphone, et copiés sur le serveur s'il y en a un.</p>
+      <div class="row"><span>État</span><b>${sync}</b></div><div class="row"><span>Favoris</span><b>${Core.favs().length}</b></div>
+      <button class="btn main" data-a="sync">🔄 Synchroniser maintenant</button></section>`;
+    if (sub === "donnees") return `${backP}<section class="card"><h1>💾 Mes données</h1><p>Garde une copie de tes parties dans un fichier, ou restaure une sauvegarde (les anciennes sauvegardes sont acceptées).</p>
+      <div class="row"><span>Parties enregistrées</span><b>${done}</b></div>
+      <button class="btn main" data-a="export">📤 Exporter mes parties</button>
+      <label for="importFile" class="btn">📥 Importer une sauvegarde</label><input id="importFile" type="file" accept=".json,application/json" hidden></section>
+      <section class="card danger"><h2>⚠️ Zone dangereuse</h2><p>La suppression de l'historique est définitive. Pense à exporter avant.</p><button class="btn danger" data-a="wipe">🗑️ Supprimer toutes les parties</button></section>`;
+    if (sub === "apropos") return `${backP}<section class="card"><h1>📱 À propos</h1>
+      <div class="row"><span>Nom</span><b>ScoreMaster</b></div><div class="row"><span>Version</span><b>${Core.VERSION}</b></div>
+      <div class="row"><span>Mode actuel</span><b>${MODES[Core.mode()].emoji} ${MODES[Core.mode()].nom}</b></div>
+      <div class="row"><span>Parties</span><b>${done}</b></div></section><a class="btn" href="#/aide">💡 Aide et nouveautés</a>`;
+    return `${backPlus}<section class="card"><h1>⚙️ Paramètres</h1><p><small>Choisis une rubrique.</small></p></section>
+      <section class="card nav">
+        <a href="#/parametres/prefs"><i>🎛️</i><span>Préférences<small>Sons, vibrations, animations, texte</small></span><u>›</u></a>
+        <a href="#/parametres/sauvegarde"><i>☁️</i><span>Synchronisation<small>${sync}</small></span><u>›</u></a>
+        <a href="#/parametres/donnees"><i>💾</i><span>Mes données<small>Exporter, importer, supprimer</small></span><u>›</u></a>
+        <a href="#/parametres/apropos"><i>📱</i><span>À propos<small>Version ${Core.VERSION}</small></span><u>›</u></a></section>`;
   }
 };
 
@@ -669,9 +708,13 @@ const ACTIONS = {
   del: () => { S.cur.manches.splice(S.edit, 1); S.edit = null; save(); draw(); },
   end: async () => {
     if (!S.cur.manches.length) return alert("Ajoute au moins une manche.");
+    if (S.cur.coop && S.cur.victoire === undefined) S.cur.victoire = confirm("🤝 Jeu coopératif : l'équipe a-t-elle GAGNÉ ?\n\nOK = victoire · Annuler = défaite");
     S.cur.fini = true;
     if (!(await Core.save(S.cur))) { S.cur.fini = false; return alert("❌ Échec de l'enregistrement : le stockage du téléphone est plein ou bloqué. La partie est conservée, libère de la place puis réessaie."); }
+    S.newBadges = [];
+    try { const me = Core.me().nom, p = S.cur; if (me && p.joueurs.some(n => Core.norm(n) === Core.norm(me))) { const h = (Core.hist || S.hist || []).filter(x => x.id !== p.id), before = unlockedOf(h, me).map(b => b[1]); S.newBadges = unlockedOf([p, ...h], me).filter(b => !before.includes(b[1])); } } catch (e) { S.newBadges = []; }
     S.last = S.cur; S.cur = null; save(); location.hash = "#/fin";
+    if (S.newBadges.length) setTimeout(() => FX.toast("🏆 Succès débloqué : " + S.newBadges.map(b => b[0] + " " + b[1]).join(", ")), 900);
   },
   drop: () => { if (confirm("Abandonner cette partie ?")) { S.cur = null; save(); location.hash = "#/"; } },
   rm: async v => { if (confirm("Supprimer cette partie ?")) { await Core.remove(v); draw(); } },
@@ -683,7 +726,7 @@ const ACTIONS = {
   fav: v => { const on = Core.toggleFav(v); if ($("#picker")) refreshSetup(); FX.toast(on ? "⭐ Ajouté aux favoris" : "Retiré des favoris"); FX.sfx(on ? "star" : "undo"); },
   nm: v => { const f = [...document.querySelectorAll(".nm")].find(i => !i.value.trim()); if (!f) return FX.toast("Tous les noms sont remplis"); f.value = v; S.names = readNames(); refreshSetup(); },
   undo: () => { if (!S.cur || !S.cur.manches.length) return; S.cur.manches.pop(); S.edit = null; save(); draw(); FX.toast("↩️ Dernière manche annulée"); FX.sfx("undo"); },
-  again: () => { const p = S.last; if (!p) return; Core.setMode(p.mode === "autres" ? "autres" : "cartes"); S.cur = { ...p, id: Core.uid(), manches: [], fini: false, date: new Date().toISOString() }; S.edit = null; save(); location.hash = "#/partie"; },
+  again: () => { const p = S.last; if (!p) return; Core.setMode(p.mode === "autres" ? "autres" : "cartes"); S.cur = { ...p, victoire: undefined, id: Core.uid(), manches: [], fini: false, date: new Date().toISOString() }; S.edit = null; save(); location.hash = "#/partie"; },
   share: async () => {
     const p = S.last; if (!p) return; const r = Core.ranking(p), txt = `🏆 ${r[0].nom} gagne à ${p.jeu} !\n` + r.map((x, k) => `${["🥇", "🥈", "🥉"][k] || k + 1 + "."} ${x.nom} — ${x.total}`).join("\n") + "\n(ScoreMaster)";
     try { if (navigator.share) await navigator.share({ text: txt }); else { await navigator.clipboard.writeText(txt); FX.toast("📋 Résultat copié"); } } catch (e) {}
@@ -696,7 +739,7 @@ const ACTIONS = {
   sort: v => { S.sort = v; draw(); },
   avatar: v => { Core.setMe({ nom: $("#meName").value.trim(), emoji: v, photo: null }); draw(); },
   rmphoto: () => { Core.setMe({ ...Core.me(), nom: $("#meName").value.trim(), photo: null }); draw(); },
-  saveme: () => { Core.setMe({ ...Core.me(), nom: $("#meName").value.trim() }); location.hash = "#/"; },
+  saveme: () => { Core.setMe({ ...Core.me(), nom: $("#meName").value.trim() }); location.hash = "#/profil"; },
   export: () => {
     const data = { version: Core.VERSION, exportedAt: new Date().toISOString(), games: S.hist, profile: Core.me(), settings: Core._load() };
     const a = document.createElement("a");
@@ -740,6 +783,7 @@ document.addEventListener("change", async e => {
 });
 document.addEventListener("input", e => {
   if (e.target.id === "q") { S.q = e.target.value; $("#picker").innerHTML = pickerHtml(); }
+  if (e.target.id === "qj") { const h = window.jeuxSearchHtml(e.target.value); $("#jres").innerHTML = h; const c = $("#jcats"); if (c) c.hidden = !!h; }
   if (e.target.id === "limv") S.limv = e.target.value;
   if (e.target.classList.contains("sc") && S.cur) { const a = Math.abs(Number(e.target.value) || 0); e.target.classList.toggle("over", !!S.cur.limite && a > S.cur.limite); e.target.classList.toggle("odd", !!S.cur.usuel && a > S.cur.usuel && !(S.cur.limite && a > S.cur.limite)); }
 });

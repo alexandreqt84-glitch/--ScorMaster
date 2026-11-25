@@ -1,2 +1,3 @@
-// Connexion à ton projet Supabase. La clé "publishable" est faite pour être publique : ne mets JAMAIS la clé "secret" / "service_role" ici.
-window.SM_CLOUD = { url: "https://rvsxgkrezzripmiqslbr.supabase.co", key: "sb_publishable_TWfju5HZMqKesBnHZUygFw_ZekmwCRC" };
+// Connexion à ton projet Supabase (voir LISEZ-MOI-COMPTES.txt). Laisse vide pour utiliser l'appli sans comptes.
+// La clé "anon / publishable" est faite pour être publique : ne mets JAMAIS la clé "service_role" ici.
+window.SM_CLOUD = { url: "", key: "" };

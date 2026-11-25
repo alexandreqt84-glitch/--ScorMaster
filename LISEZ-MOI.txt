@@ -1,0 +1,277 @@
+ScoreMaster — v2.8.6 : prêt pour PWABuilder (APK). manifest.json corrigé + captures d'écran, serveur : 404 pour les fichiers manquants, service worker plus tolérant. Détail : LISEZ-MOI-PWA.txt.
+
+ScoreMaster — v2.8.5 : comptes joueurs. Le config.js du zip est vide (donc comptes désactivés, et chaque mise à jour l'efface). Nouveau : Plus > Mon compte permet de coller l'adresse (Project URL) et la clé anon / publishable de Supabase ; elles restent sur le téléphone (localStorage sm_cloud_cfg), survivent aux mises à jour. Refuse les clés secrètes. VERSION 2.8.5-pwa36.
+
+ScoreMaster — v2.8.4 : menu Plus de nouveau en menus défilants (un groupe ouvert à la fois), avec le chiffre en pastille à droite et le chevron à droite. VERSION 2.8.4-pwa35.
+
+ScoreMaster — v2.8.3 : menu Plus refait comme sur ta capture : sections toujours visibles (plus d'accordéon ni de chiffres), titre en majuscules avec une barre de couleur (JOUER, JEUX, MES RÉSULTATS, ENTRE AMIS, APPLICATION). VERSION 2.8.3-pwa34.
+
+ScoreMaster — v2.8.2 : correctif du menu Plus (le chiffre de chaque groupe était collé au titre et le chevron mal placé : mise en page des groupes aussi injectée par extras12.js, donc indépendante du cache de style.css). VERSION 2.8.2-pwa33.
+
+ScoreMaster — v2.8.1 : variantes pour 14 jeux de la 2e vague (parties à 2/5 victoires, objectifs de points, limite du Rami 51) dans cat-variantes-3.js ; limites de points par manche pour 19 nouveaux jeux (cat-limites.js) ; le tournoi est maintenant sauvegardé : il survit à la fermeture de l'appli (VERSION 2.8.1-pwa32).
+
+ScoreMaster — v2.8.0 : +69 jeux (327 au total : cartes, plateau, dés, mots, abstrait, duel, adresse, enfants, quiz, potes, jeux vidéo, plein air, sport) ; nouvelle page Plus > Entre amis > Outils de soirée (équipes au hasard, tournoi à élimination directe, gage au hasard) ; « Que jouer ce soir ? » : nouveau filtre « Type de jeu » (jamais joués, déjà joués, en équipes, coopératifs, cartes, autres, solo). Fichiers ajoutés : server/public/cat-ajouts3.js et extras14.js (branchés dans index.html et sw.js, VERSION 2.8.0-pwa31). Vérifie les règles avec les boîtes de jeu.
+
+ScoreMaster — v2.7.0 : +75 jeux (258 au total) dans TOUTES les catégories + 3 nouvelles catégories (Enfants, Soirée entre potes, Quiz) ; « Que jouer ce soir ? » : filtre par catégorie (avec le nombre de jeux) et ambiances Enfants / Potes ; Soirées : « Préparer une soirée » (programme de 3 à 5 jeux selon joueurs et thème), palmarès des soirées et distinctions de la dernière soirée. Fichiers ajoutés : server/public/cat-ajouts2.js et extras13.js (branchés dans index.html et sw.js, VERSION 2.7.0-pwa30). Vérifie les règles avec les boîtes de jeu.
+
+ScoreMaster — v2.6.0 : +35 jeux entre potes et en famille (166 -> 183 jeux au total avec ceux de base : 12 cartes, 23 autres). Cartes : Rummy 500, Monopoly Deal, Unstable Unicorns, Munchkin, Pokémon (JCC), Magic, Tarot africain, 31 (Schwimmen), Le Parlement, Taco Chat Bouc Cheese Pizza, Bataille corse, Dominion. Autres : 421, Bunco, Shut the box, Des chiffres et des lettres, Pierre-feuille-ciseaux, Karaoké, Jackbox, Among Us, Fall Guys, Jeux de combat, Karting, Spikeball, Pickleball, Ultimate frisbee, Fer à cheval, Tirs au but, Tir à l'arc, Snooker, Machi Koro, Citadelles, Wavelength, Charades, Pronostics entre potes. Fichier ajouté : server/public/cat-ajouts.js (branché dans index.html et sw.js, VERSION 2.6.0-pwa29). Vérifie les règles avec les boîtes de jeu.
+
+ScoreMaster — v2.5.0 : menu Plus rangé en 5 groupes qui se déplient (Jouer, Jeux et parties, Mes résultats, Entre amis, Application), un seul groupe ouvert à la fois = moins de lignes à dessiner, donc moins de lag. Fichier ajouté : server/public/extras12.js (branché dans index.html et sw.js, VERSION 2.5.0-pwa28).
+
+ScoreMaster — v2.4.0 : Fluidité automatique dans Paramètres (Auto / Toujours fluide / Tous les effets + test FPS, désactivable), listes par paquets avec « Voir plus » (historique 30, classement 30, soirées 10), défilement fluide (fond et reflets en pause pendant le scroll, cartes hors écran non dessinées). Fichier ajouté : server/public/extras11.js. Le réglage Fluidité a quitté Outils pour Paramètres.
+
+ScoreMaster — v2.3.0 : Règles maison (Plus > Règles maison + rappel dans chaque partie du jeu concerné) et Récap du mois en image (Plus > Récap du mois : jeu du mois, joueur du mois, plus belle victoire, jour le plus chargé). Fichier ajouté : server/public/extras10.js.
+
+ScoreMaster — v2.2.0 : Forces et faiblesses (Plus > Forces et faiblesses : taux de victoire par jeu, jeu fétiche, bête noire) et Liste d’envies (Plus > Liste d’envies : recherche, tirage au sort, passage automatique en « joué »). Fichier ajouté : server/public/extras9.js.
+
+ScoreMaster — v2.1.0 : « Que jouer ce soir ? » refait (filtres compacts sur une ligne glissante, un jeu conseillé en grand avec « Autre idée », liste courte dessous).
+
+ScoreMaster — v2.0.1 : Gages et dettes (Plus > Gages et dettes + enjeu en fin de partie), image de la soirée (page Soirées), et correctifs anti-lag : mode fluide par défaut (Outils > Fluidité), un seul redessin au démarrage, thème clair sans :has(), ombres et flous allégés.
+
+ScoreMaster — v1.9.0 : Records et anecdotes (Plus > Records et anecdotes) : plus gros score, partie la plus serrée, plus grosse victoire, plus grosse remontée, plus longue série de victoires, partie la plus longue, duo le plus fidèle. Fichier ajouté : server/public/extras7.js.
+
+ScoreMaster — v1.8.0 : Mon activité (Plus > Mon activité) : série de jours, record, calendrier des 13 dernières semaines (touche un jour pour le détail) et jeux les plus joués. Fichier ajouté : server/public/extras6.js.
+
+ScoreMaster — v1.7.0 : Défis de la semaine (Plus > Défis : étoiles, titres, barres de progression), Que jouer ce soir ? (Plus : filtres joueurs/durée/ambiance) et Notes sur les parties (Historique + page de fin). Fichier ajouté : server/public/extras5.js. Les notes sont incluses dans la sauvegarde.
+
+ScoreMaster — v1.6.0 : Soirées jeux (Plus > Soirées jeux : classement général et vainqueur de chaque soirée), Duels entre joueurs (Plus > Duels : victoires, série, meilleur score) et Sauvegarde/restauration en fichier .json (Plus > Sauvegarde). Fichier ajouté : server/public/extras4.js.
+
+ScoreMaster — v1.5.3 : mises à jour immédiates. Le service worker charge maintenant les fichiers en réseau d’abord (cache seulement hors ligne) et l’appli se recharge toute seule quand une nouvelle version est installée : plus besoin de rouvrir l’appli 2 fois.
+
+ScoreMaster — v1.5.2 : thème clair corrigé et renforcé (textes lisibles, carte d’accueil claire) ; bouton ☀️/🌙 toujours visible en haut à droite ; le numéro de version affiché est maintenant le vrai (v1.5.2) pour vérifier que la mise à jour est chargée.
+
+ScoreMaster — v1.5.1 : boîte à outils corrigée (plus de flash noir ni de saut de page : chaque outil ne redessine que sa carte ; puces de chiffres compactes) et compteur de vie (PV) refait : prénoms modifiables, boutons −10/−5/−1/+1/+5/+10 (−/+100/500/1000 à 8000 PV), départ personnalisé, annuler, K.O. et vainqueur.
+
+ScoreMaster — v1.5.0 : courbe d’évolution des scores (page partie et fin), image de résultat à partager (page fin), export CSV de tout l’historique et thème clair / sombre / auto (Plus > Outils de jeu).
+  Fichier ajouté : server/public/extras3.js (branché dans index.html et sw.js, VERSION 1.5.0-pwa14) ; styles ajoutés à theme2.css.
+
+ScoreMaster — v1.4.1 : boîte à outils de jeu (Plus > Outils de jeu et tuile sur l’accueil) : dés (1 à 6, d4 à d20), pile ou face, tirage de l’ordre de jeu, compteur de vie (20 / 40 / 8000 pts, 2 à 4 joueurs).
+  Fichier ajouté : server/public/extras2.js (branché dans index.html et sw.js, VERSION 1.4.1-pwa13) ; styles ajoutés à theme2.css.
+
+ScoreMaster — THÈME 2 (v1.4.0) : barre du bas Liquid Glass, accueil en bento, totaux qui roulent avec étincelles (+ couronne du leader), ambiances par famille (tapis, bois, néon, pop).
+  Fichiers ajoutés : server/public/theme2.css et theme2.js (branchés dans index.html et sw.js, VERSION 1.4.0-pwa12). Pour tout retirer : supprimer ces 2 lignes dans index.html.
+
+ScoreMaster — NOUVEAUTÉ (session 8) : +35 jeux familiaux (113 -> 148 jeux, 164 avec les jeux jouables)
+  Fichier ajouté : server/public/cat-famille.js (branché dans index.html et sw.js, VERSION 1.3.0-pwa11).
+  Cartes (15) : Memory (jeu de cartes), 7 familles, Nain jaune, Skip-Bo, Yaniv, Crapette, Tichu, Lama, Saboteur, Jaipur,
+    Lost Cities, Bohnanza, Cortex Challenge, Ligretto, Set.
+  Autres jeux (20) : Qwixx, Zombie Dice, Can't Stop, Petit Bac, Qui est-ce ?, Mastermind (à deux), Bataille navale, Le Pendu (papier-crayon),
+    Jeu de l'oie, Petits chevaux, Serpents et échelles, Labyrinthe, Sequence, Blokus, Takenoko, Draftosaurus, Just One (coopératif),
+    Loto / Bingo, Overcooked (coopératif), Wii Sports / Switch Sports.
+  3 jeux portent « (à deux) », « (papier-crayon) » ou « (jeu de cartes) » dans leur nom : l'appli a déjà des versions jouables seules de
+  Memory, Mastermind et Pendu (mêmes identifiants = conflit). Pour ajouter un jeu : une ligne C(...) ou A(...) dans cat-famille.js.
+  Testé : les 35 jeux se créent, se comptent et se terminent sans erreur ; aucun identifiant en double.
+
+ScoreMaster — NOUVEAUTÉS (session 7) : tout ce qui a été proposé après l'analyse des 113 jeux
+  Fichier ajouté : server/public/extras.js (branché dans index.html et sw.js, VERSION 1.3.0-pwa10).
+  + Jeux coopératifs (Hanabi, The Mind, Pandemic) : à la fin, « l'équipe a-t-elle gagné ? » ; victoire ou défaite pour tous,
+    écran de fin « Victoire de l'équipe ! », stats et gloire cohérentes (plus de gagnant « au plus de points »).
+  + Équipes avec leurs joueurs : à la création d'un jeu par équipes, champ facultatif « Joueurs de l'équipe » (Marc, Léa).
+    Les stats, la gloire, les succès et le bilan reviennent à chaque personne (core.js : Core.explode / Core.rank).
+  + Feuilles de score par catégorie (7 Wonders, 7 Wonders Duel, Wingspan, Catan, Carcassonne, Azul, Cascadia, Patchwork, Quacks,
+    Sagrada, Aventuriers du Rail, Kingdomino) : encadré « 🧮 Calculer le score d'une manche » avec total automatique.
+    Pour en ajouter un : une ligne dans FEUILLE (extras.js) : "Nom exact du jeu": [["Libellé", multiplicateur], ...].
+  + Belote / Coinche : bouton « L'autre équipe = 162 − points saisis » (liste COMPL dans extras.js).
+  + Donneur et premier joueur affichés (jeux de cartes sans équipes), qui tournent à chaque manche.
+  + Minuteur (30 s, 1, 2, 5 min) avec son et vibration, et Mode TV (#/tv) : gros scores à montrer sur un écran.
+  + Niveau Elo par jeu (#/jeu/<id>) : battre un joueur mieux classé rapporte plus ; ignore les jeux coopératifs.
+  + Bilan de l'année (#/bilan, dans Plus) : parties, victoires, jeu fétiche, mois et jour préférés, adversaires, série, partage.
+  + Ménage : catégorie « Jeu vidéo » fusionnée en « Jeux vidéo » ; serveur : DELETE /api/parties exige maintenant l'en-tête
+    X-Confirm: tout-supprimer (l'appli l'envoie toute seule), sinon réponse 403.
+  Testé dans un navigateur au format téléphone (32 vérifications, aucune erreur JavaScript).
+
+ScoreMaster — +40 jeux populaires (14 cartes dont Trio, Flip 7, Hanabi, Five Crowns ; 26 autres dont Quacks, Brass, Wingspan, Skull, Échecs) et classement PAR JEU (Classement > Par jeu).
+  Nouveaux fichiers : cat-populaires.js, cat-populaires2.js. Voir REPRISE.txt pour l'état du travail.
+
+ScoreMaster — profils des autres joueurs : Plus > Joueurs, noms cliquables partout (classement, accueil, fin de partie), parties de chacun visibles.
+  Fichiers modifiés : app.js, cloud.js, style.css, sw.js, supabase.sql (relancer le SQL).
+
+ScoreMaster — VERSION 1.3.0
+  Cartes et Autres jeux sont maintenant séparés :
+    une partie en cours par mode (on ne voit plus « Reprendre la partie » de l'autre mode ; l'ancienne partie en cours est reprise
+    automatiquement dans son mode), Accueil / Historique / Classement / Statistiques / gloire de fin de partie propres à chaque mode.
+    Profil et Succès restent communs aux deux modes (le profil détaille Cartes et Autres jeux séparément).
+  Deux ambiances très différentes : Cartes = rouge rubis et or, fond lie-de-vin à motifs ♠♥♦♣, coins très arrondis, titres à empattement ;
+    Autres jeux = bleu électrique et cyan, fond nuit bleue à motifs de dés, formes plus carrées avec liseré, titres en capitales.
+    Logo, étiquette sous le titre, confettis et barre du navigateur changent aussi. Les thèmes de page (or, émeraude…) ne teintent
+    plus que l'aurore du fond, pour que le mode reste reconnaissable partout.
+  Réglages sauvegardés au même endroit : server/data/settings.json (partagé entre tes appareils, copie locale instantanée).
+    Contenu : favoris, préférences (sons, effets...), profil, records solo, et derniers réglages de chaque jeu
+    (variante, nombre de joueurs, limite, objectif). Modification la plus récente gagnée clé par clé ; travail hors ligne
+    possible, envoi automatique au retour du serveur. Paramètres > « Sauvegarde des réglages » : état + bouton Synchroniser.
+    Tes anciens favoris/réglages/records de la 1.1.0 sont repris automatiquement au premier lancement.
+  Changements de page plus fiables : un seul rendu à la fois (plus de page qui en écrase une autre), historique gardé en mémoire
+    (plus d'attente réseau à chaque page), retour en haut après l'affichage, page d'erreur de secours au lieu d'un écran vide,
+    objectif de partie conservé quand on change le nombre de joueurs, favoris sans erreur hors de la liste des jeux.
+  Plus fluide : animations d'entrée plus courtes, projecteur seulement à la souris, pas de délai au toucher, fichiers en cache
+    revalidés (plus d'ancien script après une mise à jour).
+  Nouveau thème sombre « nuit étoilée » et animations partout (fichiers style.css et fx.js) :
+    Fond : étoiles qui scintillent + aurores qui dérivent lentement ; elles changent en fondu violet/rose (Cartes)
+      ou bleu/cyan (Autres jeux) quand on bascule de mode. Le sélecteur de mode a une pastille qui glisse.
+    Cartes en verre fumé avec filet lumineux et projecteur qui suit le doigt/la souris ; boutons avec reflet,
+      ondulation au toucher et effet de relief ; champs avec halo de focus ; listes de jeux plus lisibles.
+    Entrée animée des pages (cartes qui montent en cascade), barres de classement qui se remplissent,
+      compteurs qui défilent jusqu'à leur valeur, leader du tableau qui brille, nouvelle manche qui glisse.
+    Victoire : trophée qui tombe + confettis (fin de partie et records dans les jeux jouables).
+    Jeux : dés qui roulent, bonne réponse qui pulse / mauvaise qui tremble, tuiles et boutons plus vivants.
+    Les animations respectent le réglage « réduire les animations » du téléphone.
+  Version affichée dans l'en-tête, le pied de page, Paramètres, l'export, manifest.json, package.json et Dockerfile.
+
+  + Thèmes par page : Classement et fin de partie en or/ambre, Profil en émeraude, Historique en braise, Paramètres en acier ;
+    les couleurs de l'aurore de fond se fondent d'un thème à l'autre.
+  + Gloire ⭐ (points de classement) : +2 par partie, victoire +8 (+2 par adversaire), égalité en tête = moitié, 2e à 3+ joueurs = +nb joueurs,
+    série de victoires en bonus. 8 niveaux : Novice, Apprenti, Joueur, Confirmé, Expert, Maître, Champion, Légende.
+  + Classement refait : « Roi de la colline » avec podium et couronne, filtre Depuis toujours / 30 jours / Cette semaine (roi de la semaine),
+    tri Gloire / Victoires / Réussite, fiche dépliable par joueur (victoires, défaites, séries, forme V/D/E, points moyens, jeu fétiche,
+    bête noire, joueur dominé, 8 badges).
+  + « Ton défi » : gloire qui manque pour dépasser le joueur du dessus et pour prendre le trône (≈ N victoires), ou défense de la couronne.
+  + Fin de partie : « +N ⭐ » par joueur, annonce de la prise de tête du classement et des montées de niveau.
+  + Accueil et profil : niveau, gloire et rang visibles, bouton « Viser la 1re place » / « Défendre mon trône ».
+
+  + Profil enrichi : rang et niveau, évolution de la gloire (courbe), stats par mode (Cartes / Autres jeux), tableau « Mes jeux »,
+    « Face à face » contre chaque joueur, records (meilleur score, plus large victoire, meilleure série, records solo),
+    8 dernières parties avec résultat (V / D / É) et rang.
+
+  + Confort et pratique (sans surcharger) :
+    Paramètres > Préférences : sons, vibrations, fond/effets animés, confettis, texte plus grand, écran allumé pendant une partie.
+    ⭐ Favoris : l'étoile d'un jeu le fait remonter en tête de la liste.   Joueurs récents : boutons sous les champs de noms.
+    Partie en cours : « Annuler la dernière manche ».   Fin de partie : « Rejouer avec les mêmes joueurs » et « Partager le résultat ».
+    Petits messages de confirmation (manche ajoutée, favori, enregistré…).
+
+  + Écran allégé, plus de pages : barre d'onglets Accueil / Jouer / Classement / Profil / Plus.
+    Accueil : salut selon l'heure, série de jours de jeu, « Nouvelle partie », « Surprise-moi », jeu du jour, haut du classement, dernières parties.
+    Jouer (#/nouvelle) : choix du jeu et réglage de la partie.   Plus : Jeux et règles, Historique, Statistiques, Succès, Aide, Paramètres.
+    Statistiques : activité des 7 derniers jours, jeux les plus joués, Cartes vs Autres jeux.   Succès : 11 succès avec barre de progression.
+    Aide : calcul de la gloire, niveaux, astuces, nouveautés.
+  + Interactions : boutons − / + pour saisir les scores, petits sons (manche, annulation, favori, victoire), confettis quand l'objectif est atteint.
+  + Test automatique : toutes les pages, le comptage manuel de chaque jeu et les 20 jeux jouables (clics au hasard) sans erreur.
+    Bugs corrigés : page « Jouer » (variable manquante) et page « fin » vide quand aucune partie n'est terminée.
+
+  + Retouches de style : barre d'onglets fixe en bas (Accueil, Jeux, Historique, Classement, Profil ; masquée pendant un jeu), menu à grandes icônes,
+    titres de section avec liseré coloré, boutons à coins arrondis, grain subtil sur le fond.
+  + Corrections : emojis des titres devenus gris/blancs (dégradé de texte) ; emoji de la carte Mémoire retourné à l'envers ;
+    option sélectionnée décalée sur le côté dans les listes de choix.
+
+ScoreMaster : une seule appli, deux modes (🃏 Cartes / 🎲 Autres jeux) changeables à tout moment.
+
+  docker compose up -d --build   ->   http://localhost:3000
+
+Les parties sont enregistrées dans server/data/parties.json.
+Sans Docker :  cd server && node server.js
+
+NOUVEAU (v2.1) — mode « Autres jeux » : 65 jeux, dont 20 jouables directement dans l'appli
+  Choisis un jeu : « ▶️ Jouer maintenant » lance la partie tout de suite.
+  Solo (record gardé sur l'appareil) : 2048, Démineur, Memory, Taquin, Simon, Pendu, Mastermind,
+    Plus ou moins, Snake, Lights Out, Test de réflexes.
+  Duels : Morpion, Puissance 4 (1 joueur = contre l'IA, 2 joueurs = à deux), Pierre-feuille-ciseaux.
+  Dés : Yams complet (1 à 6 joueurs), Cochon (contre l'IA ou entre amis).
+  Groupe (le téléphone passe de main en main) : Loup-garou (sans narrateur), Undercover (avec Mr White),
+    Quiz, Action ou Vérité.
+  À la fin d'une partie : « Enregistrer dans l'historique » l'ajoute aux stats et au classement.
+  Fichiers ajoutés : cat-plus.js (jeux à compter à la main), play-solo.js et play-party.js (jeux jouables).
+
+NOUVEAU (v2.2) — variantes des jeux, ajoutées petit à petit
+  Loup-garou, lot 1 : 6 nouveaux rôles à activer à l'écran de composition
+    👧 Petite fille (espionne les loups, 1 chance sur 3 d'être repérée)
+    🛡️ Salvateur (protège un joueur par nuit, pas le même deux nuits de suite)
+    🤡 Idiot du village (survit au vote mais perd sa voix)
+    👴 Ancien (survit à une attaque ; s'il est éliminé par le village, plus aucun pouvoir)
+    🐐 Bouc émissaire (bouton « Égalité des voix » au vote)
+    🐦 Corbeau (+2 voix contre un joueur désigné)
+  Loup-garou, lot 2 : 6 rôles de plus
+    🐺⚪ Loup blanc (loup solitaire : les nuits paires il mange un loup ; gagne seul)
+    🧛 Infect père des loups (une fois, infecte la victime au lieu de la tuer)
+    👼 Ange (gagne seul s'il est voté au tout premier vote)
+    🦊 Renard (flaire un joueur et ses 2 voisins : y a-t-il un loup ?)
+    🃏 Voleur (échange sa carte avec 2 cartes du centre la 1re nuit)
+    🐒 Enfant sauvage (choisit un modèle, devient loup s'il meurt)
+  Loup-garou, lot 3 (dernier) : 7 rôles de plus
+    👭 Deux sœurs / 👬 Trois frères (ils se connaissent dès le début)
+    🐻 Montreur d'ours (l'ours grogne le matin si un voisin est un loup)
+    ⚔️ Chevalier à l'épée rouillée (s'il meurt des loups, le loup à sa gauche meurt la nuit suivante)
+    🧹 Servante dévouée (prend la carte d'un joueur éliminé par le village)
+    🪈 Joueur de flûte (envoûte 2 joueurs par nuit ; gagne seul si tous sont envoûtés)
+    👹 Grand méchant loup (2e victime par nuit tant qu'aucun loup n'est mort)
+  Le Loup-garou compte maintenant 25 rôles.
+
+  Undercover : 8 thèmes de mots (classique, nourriture, animaux, lieux, sport, maison, pop culture, métiers)
+    ou tous mélangés ; mots personnalisés ; 0 à 2 Mr White ; 🎭 Double agent ; 🤡 Clown ;
+    option « révéler le rôle des éliminés » ; option « annoncer le nombre d'infiltrés ».
+
+  Yams : écran de variantes avant la partie
+    Classique (Yahtzee, 13 catégories) ou Yatzy scandinave (15 catégories : paire, deux paires, suites 15/20, bonus 50) ;
+    2 à 5 lancers par tour ; 📋 ordre imposé ; 📣 annonce (×2 si réussie, 0 sinon) ; 🃏 Yams bonus +100 (Classique).
+
+NOUVEAU (v2.3) — variantes, lot 4 (fichier play-variantes.js)
+  Cochon : objectif 50/100/150 ; 2 dés (Big Pig : double 1 = score remis à 0) ; IA prudente / normale / audacieuse.
+  Quiz : 5/10/15 questions par joueur ; 💀 Mort subite ; ⏱️ Chrono 15 s (+1 si rapide) ; 🃏 Joker 50/50.
+  Action ou Vérité : niveaux Tout public / Piquant / Mélange ; cartes bonus (Joker, Défi de groupe, Échange) ; points.
+
+NOUVEAU (v2.4) — variantes, lot 5 : les duels
+  Pierre-feuille-ciseaux : 2/3/5 manches gagnantes ; version Lézard-Spock (5 gestes) ; IA rusée.
+  Morpion : grilles 3×3 / 4×4 / 5×5 ; mode Misère (aligner = perdre).
+  Puissance 4 : Classique, Puissance 3 (5×5), Puissance 5 (9×7) ; Misère ; IA facile / normale / experte.
+
+NOUVEAU (v2.5) — variantes, lot 6 : les solos (modifiés dans play-solo.js)
+  Démineur : + Débutant (6×6, 5 mines) et Expert (12×16, 45 mines).
+  Memory : + Mini (4 paires).   Taquin : + 5×5 expert.
+  Plus ou moins : plage au choix (1-10, 1-50, 1-100, 1-1000, 1-10 000).
+  Lights Out : grille 3×3, 5×5 ou 7×7.
+  Snake : vitesse lente / normale / rapide ; murs traversants.
+  Pendu : 10, 7, 5 ou 3 erreurs permises.
+  Les records sont communs à toutes les variantes d'un même jeu.
+
+NOUVEAU (v2.6) — variantes, lot 7 : fin des solos
+  2048 : grilles 3×3 / 4×4 / 5×5 / 6×6 (objectifs 256 / 2048 / 4096 / 8192).
+  Mastermind : 3-5 pions ; 6 ou 8 couleurs ; doublons permis ou non ; 8/10/12 essais.
+  Simon : 4 ou 6 boutons ; 3 vitesses ; mode à l'envers.
+  Test de réflexes : 3/5/10 manches ; mode Pièges (faux signaux).
+  Tous les jeux jouables dans l'appli ont maintenant des variantes.
+
+NOUVEAU (v2.7) — variantes des jeux de cartes et des jeux à compter à la main (fichier cat-variantes.js)
+  Les 25 jeux du mode Cartes et 41 jeux du mode Autres jeux ont 2 variantes chacun
+  (ex. Belote coinchée, Tarot à 5, Poker Omaha, Hearts « tirer la lune », Catan 8/12 points, Mölkky, Perudo palifico...).
+  À la création d'une partie : menu « 🧩 Variante » ; l'objectif de points et le sens du score se règlent tout seuls
+  quand la variante en impose un ; la variante s'affiche dans la partie et dans « Jeux et règles ».
+
+NOUVEAU (v2.8) — objectif de chaque manche (d'après les règles)
+  Dans « Nouvelle manche », un encadré 🎯 rappelle l'objectif de la manche en cours : phase à réussir (Phase 10),
+  nombre de cartes (Wizard), points à faire selon les bouts (Tarot), contrat (Belote, Coinche, Euchre, Spades),
+  sens de la passe (Hearts), type de manche (Time's Up), tour/trou/course (Bowling, Golf, Mario Kart)...
+  Les données sont dans cat-variantes.js (window.OBJ) : une ligne par jeu, faciles à compléter.
+
+NOUVEAU (v2.9) — limite de points par manche (fichier cat-limites.js)
+  À la création d'une partie : menu « 📏 Limite de points par manche »
+    Automatique : reprend le plafond des règles du jeu et de la variante (ex. Cœurs 26, Pétanque 6, Fléchettes 180,
+      Mölkky 12, Euchre 4, Bowling 30, Belote 272 ou 1088 en coinchée, Président 2 ou 3 à 6 joueurs et plus...)
+    Sans limite
+    Je choisis le nombre : tu saisis toi-même le maximum
+  En partie : la limite s'affiche en haut et au-dessus des scores ; bouton « ✏️ Changer » pour la modifier ou la retirer (0).
+  Un score dont la valeur absolue dépasse la limite devient rouge, et la manche ne peut pas être validée tant que ce n'est pas corrigé.
+  « Jeux et règles » indique la limite automatique de chaque jeu concerné.
+  Pour ajouter ou corriger un plafond automatique : une ligne par jeu dans window.LIM (cat-limites.js).
+
+NOUVEAU (v2.10) — limite par manche pour presque tous les jeux, y compris « Autres jeux »
+  49 jeux sur 73 ont maintenant un plafond automatique (selon la variante et le nombre de joueurs quand c'est utile) :
+    Cartes : Belote, Coinche, Tarot, Skyjo, Uno, Phase 10, Cœurs, Pique, Scopa, Briscola, Cribbage, Mille Bornes,
+      6 qui prend !, Huit américain, Gin Rummy, Wizard, Euchre, Président, Pouilleux, Bataille, Menteur.
+    Autres jeux : Yams, Rummikub, Catan, Dominos, Trivial Pursuit, Match/tournoi, Pétanque, Fléchettes, Mölkky, Cornhole,
+      Bowling, Golf, Mario Kart, Badminton, Babyfoot, Tennis, Time's Up, Risk, Azul, Dixit, Codenames, Perudo, Dobble,
+      Jungle Speed, Tic Tac Boum, Mikado, Billard, Just Dance.
+  Le plafond est le maximum possible d'une saisie, d'après les règles (certains vérifiés sur le web : Skyjo, Cribbage,
+  Mille Bornes, Azul, Mikado, Just Dance). Il sert surtout à repérer une faute de frappe.
+  Sans plafond (score non borné ou propre à chaque table) : Rami, Poker, Blackjack, Canasta, 10 000, Cochon, Scrabble,
+  Qwirkle, Carcassonne, Aventuriers du Rail, Ping-pong, Volley, Pictionary, Quiz, Monopoly, Splendor, 7 Wonders,
+  Mille Sabords, Kingdomino, Taboo, Boggle, Basket, Jeu de foot vidéo, Smash : choisis « Je choisis le nombre… » si tu veux en fixer un.
+
+NOUVEAU (v2.11) — simulation de 500 parties par jeu et seuil « score inhabituel »
+  outils/simulation.js : joue 500 parties de 17 jeux (Belote, Skyjo, Uno, Phase 10, Pique, Cribbage, 6 qui prend !,
+    Huit américain, Wizard, Yams, Rummikub, Dominos, Dixit, Tennis, Badminton, Ping-pong, Volley, Cochon) et 2 jeux
+    vidéo (FIFA, Smash), puis compare chaque score de manche aux limites. Lancer : node outils/simulation.js [nombre]
+    Résultat : outils/rapport-simulation.txt. Ce sont des simulations (vraies règles, joueurs au hasard ou stratégie
+    simple), pas des enregistrements de vraies parties.
+  Correction : Pique passe de 330 à 400 (deux nil aveugles réussis dans la même équipe). Aucune autre limite dépassée.
+  server/public/cat-usuel.js (généré par la simulation) : pour les jeux sans limite ou à limite large (Ping-pong, Volley,
+    Badminton en 11, Cochon, FIFA, Smash, 6 qui prend !), un score au-dessus du seuil demande confirmation sans bloquer.
+    Le champ devient orange ; la limite, elle, reste rouge et bloque. Choisir « Sans limite » ou un nombre à la main
+    désactive ce seuil.

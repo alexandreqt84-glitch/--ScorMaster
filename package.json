@@ -1,0 +1,9 @@
+{
+  "name": "scoremaster",
+  "version": "1.3.0",
+  "description": "ScoreMaster : scores de jeux de cartes et de tous les autres jeux",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "license": "UNLICENSED",
+  "private": true
+}

@@ -1,0 +1,47 @@
+// Variantes des jeux populaires ajoutés (cat-populaires.js / cat-populaires2.js). Même format que cat-variantes.js : [nom, règle, { target?, low? }]
+(function () {
+  const T = n => ({ target: n });
+  const V = {
+    trio: [["Partie courte (2 trios)", "Le premier à réunir 2 trios gagne.", T(2)], ["Partie longue (4 trios)", "Il faut réunir 4 trios pour gagner.", T(4)]],
+    flip7: [["Partie courte (100)", "Le premier à 100 points gagne.", T(100)], ["Partie longue (300)", "On joue jusqu'à 300 points.", T(300)]],
+    hanabi: [["Avec les multicolores", "On ajoute une sixième couleur : le feu d'artifice est plus difficile à réussir."], ["Sans indices de valeur", "Version expert : seuls les indices de couleur sont permis (variante maison)."]],
+    "the-mind": [["Niveaux réduits", "On s'arrête à un niveau choisi au départ (ex. niveau 8 à 2 joueurs)."], ["Sans étoiles", "On joue sans les étoiles filantes pour plus de difficulté."]],
+    "love-letter": [["Partie courte", "Le premier à 4 jetons de faveur (à 4 joueurs : 4 ; à 2 joueurs : 7) gagne la partie.", T(4)], ["Partie longue", "On joue jusqu'à 7 jetons de faveur.", T(7)]],
+    cambio: [["Partie courte (50)", "On s'arrête dès qu'un joueur atteint 50 points : le plus bas gagne.", { target: 50, low: true }], ["Partie longue (100)", "On joue jusqu'à 100 points : le plus bas gagne.", { target: 100, low: true }]],
+    rikiki: [["Montée seulement", "On joue de 1 carte jusqu'au maximum, sans redescendre."], ["Montée et descente", "Le nombre de cartes augmente puis diminue, jusqu'à 1 carte."]],
+    whist: [["Whist à l'annonce", "Chaque équipe annonce le nombre de plis qu'elle pense faire (variante du Bridge)."], ["Partie en 5 donnes", "On convient de jouer un nombre de donnes fixé à l'avance (ex. 5)."]],
+    bridge: [["Bridge de rubber", "Le premier camp qui gagne deux manches remporte le rubber."], ["Bridge duplicate", "Les mêmes donnes sont rejouées à plusieurs tables ; on compare les scores."]],
+    "five-crowns": [["Partie courte", "On ne joue que les manches de 3 à 8 cartes (variante maison)."], ["Partie complète", "11 manches, de 3 à 13 cartes : le plus bas total gagne.", { low: true }]],
+    "sushi-go": [["À 2 joueurs", "On retire une carte de la main à chaque tour : le « joueur fantôme » est facultatif."], ["Menu au choix", "On choisit à l'avance les types de cartes utilisés (ex. sans wasabi)."]],
+    papayoo: [["Plusieurs manches", "On joue autant de manches qu'il y a de joueurs ; le plus bas total gagne.", { low: true }], ["Papayoo fixe", "Le Papayoo est toujours le 7 de la même couleur (au lieu d'un dé)."]],
+    "exploding-kittens": [["Sans désamorçage", "On retire un désamorçage : parties plus brèves et plus risquées."], ["En équipes", "Les joueurs forment des équipes : chacun peut aider son partenaire (variante maison)."]],
+    cah: [["Premier à 5", "Le premier joueur à 5 cartes noires gagne.", T(5)], ["Premier à 8", "Le premier joueur à 8 cartes noires gagne.", T(8)]],
+    quacks: [["Partie en 9 manches", "Partie standard de 9 manches."], ["Partie courte", "On joue les 5 premières manches seulement (variante maison)."]],
+    brass: [["À 2 joueurs", "Le plateau est réduit : certaines cartes de villes sont retirées."], ["Partie standard", "Deux ères (canaux puis chemins de fer), 2 à 4 joueurs."]],
+    "chateaux-bourgogne": [["Plateaux au choix", "Chacun choisit un plateau personnel (face A ou B) : la partie est moins équilibrée."], ["Partie standard", "5 phases de 5 tours chacune."]],
+    wingspan: [["Partie solo / duel", "Sans l'extension, à 2 joueurs, on garde les mêmes règles."], ["Objectifs de manche variables", "On utilise la face « compétitive » ou « coopérative » du tableau des objectifs."]],
+    pandemic: [["Niveau facile (4 épidémies)", "Jouer avec 4 cartes Épidémie."], ["Niveau difficile (6 épidémies)", "Jouer avec 6 cartes Épidémie."]],
+    "king-of-tokyo": [["Victoire à 20 points", "Le premier à 20 points de gloire gagne.", T(20)], ["Victoire à 15 points", "Partie plus courte : 15 points.", T(15)]],
+    bang: [["Sans Shérif visible", "Le Shérif ne se dévoile pas (variante maison)."], ["Avec extension", "On ajoute les cartes Dodge City."]],
+    cluedo: [["Version courte", "On limite le nombre de pièces visitées."], ["Version experte", "Chacun note ses déductions dans le carnet : pas d'accusation sans preuves."]],
+    puissance4: [["Premier à 3 manches", "Le premier à 3 victoires gagne la partie.", T(3)], ["Popout", "On peut retirer un jeton de sa couleur de la ligne du bas."]],
+    echecs: [["Partie chronométrée", "Chacun a 10 minutes pour toute la partie."], ["Blitz", "Chacun a 3 minutes pour toute la partie."]],
+    dames: [["Dames françaises (10×10)", "Plateau de 10×10 cases, prise obligatoire."], ["Dames anglaises (8×8)", "Plateau de 8×8 cases, les pions ne prennent pas en arrière."]],
+    backgammon: [["Partie à 3 points", "Premier à 3 points de match.", T(3)], ["Partie à 5 points", "Premier à 5 points de match.", T(5)]],
+    jenga: [["Premier à tomber", "Celui qui fait tomber la tour perd la manche."], ["Plusieurs manches", "On compte les manches perdues : le moins de chutes gagne.", { low: true }]],
+    bananagrams: [["Partie rapide", "On pioche 15 lettres au départ."], ["Partie normale", "On pioche 21 lettres au départ (selon la règle)."]],
+    patchwork: [["Partie standard", "Chacun a un plateau de 9×9 et 5 boutons au départ."], ["Partie courte", "On retire des pièces pour accélérer la partie."]],
+    "sept-wonders-duel": [["Victoire militaire", "On gagne immédiatement en poussant le pion militaire jusqu'au bout."], ["Victoire scientifique", "On gagne en réunissant 6 symboles scientifiques différents."]],
+    cascadia: [["Cartes de faune familiales", "On utilise les cartes de faune faciles, sans comptage compliqué."], ["Cartes de faune intermédiaires", "On utilise les cartes de faune intermédiaires."]],
+    "loups-garous": [["Avec Voyante et Sorcière", "On ajoute les rôles de la voyante et de la sorcière."], ["Sans rôles spéciaux", "Seulement villageois et loups."]],
+    "small-world": [["Duel (2 joueurs)", "On utilise la carte réduite : moins de territoires."], ["Avec pouvoirs", "On pioche les races et pouvoirs en début de partie."]],
+    skull: [["Partie à 2 victoires", "Le premier à réussir 2 défis gagne.", T(2)], ["Partie à 3 victoires", "Le premier à réussir 3 défis gagne.", T(3)]],
+    sagrada: [["Partie solo", "Vous jouez seul contre un score à battre."], ["Avec objectifs publics", "Trois objectifs publics sont posés au centre."]],
+    "mario-party": [["10 tours", "Partie courte de 10 tours."], ["20 tours", "Partie longue de 20 tours."]],
+    "rocket-league": [["Match de 5 minutes", "Un match standard de 5 minutes."], ["Premier à 5 buts", "Le premier à 5 buts gagne.", T(5)]],
+    padel: [["Match en 2 sets gagnants", "Le premier à gagner 2 sets l'emporte."], ["Point en or", "À égalité à 40-40, le point suivant décide du jeu."]],
+    "beer-pong": [["6 gobelets", "Chacun a 6 gobelets au lieu de 10."], ["Ile de rebond", "Un rebond compte pour 2 gobelets."]],
+    kubb: [["Partie courte", "Tomber les kubbs adverses puis le roi."], ["Partie en équipes", "2 équipes de 1 à 6 joueurs."]]
+  };
+  [window.CAT_CARTES, window.CAT_AUTRES].forEach(l => (l || []).forEach(g => { if (V[g.id] && !g.variants) g.variants = V[g.id]; }));
+})();

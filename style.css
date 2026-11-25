@@ -517,3 +517,51 @@ a.row.plrow.me{background:rgba(var(--rgb),.14);border-radius:14px;padding-left:8
 .gdet .who{flex:1;min-width:0}.gdet .who b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .gdet summary em{font-style:normal;font-weight:900;white-space:nowrap}
 .tbl th .plink{border-bottom:0}
+
+/* ---- listes de navigation (Plus, Paramètres, Succès) : une rubrique par ligne, peu d'infos à la fois ---- */
+.card.nav{padding-top:14px}.card.nav h2{margin-bottom:6px}
+.nav a{display:flex;align-items:center;gap:14px;min-height:60px;padding:10px 6px;color:inherit;text-decoration:none;border-top:1px solid rgba(255,255,255,.08);transition:background .25s,transform .2s}
+.nav a:first-of-type{border-top:0}.nav a:active{transform:scale(.98);background:rgba(255,255,255,.06);border-radius:16px}
+.nav a i{font-style:normal;font-size:26px;width:38px;text-align:center}
+.nav a span{flex:1;font-weight:700;display:flex;flex-direction:column;gap:2px}.nav a span small{font-weight:400;opacity:.7;font-size:12.5px}
+.nav a b{opacity:.85;font-size:14px}.nav a u{text-decoration:none;opacity:.5;font-size:24px;line-height:1}
+.ach.one{grid-template-columns:1fr}
+.row2+.card,.card+.card{margin-top:14px}
+/* v1.3.0-pwa7 : succès débloqués en fin de partie, succès d'un autre joueur */
+.newbdg{margin:14px 0;padding:14px;border-radius:22px;background:rgba(var(--rgb),.12);border:1px solid rgba(var(--rgb),.45)}
+.newbdg>b{display:block;text-align:center;margin-bottom:10px}
+.newbdg .link{display:block;text-align:center;margin-top:10px}
+.sdet{border-top:1px solid rgba(255,255,255,.1);padding:10px 0}
+.sdet summary{display:flex;justify-content:space-between;align-items:center;cursor:pointer;list-style:none;font-weight:700}
+.sdet summary::-webkit-details-marker{display:none}
+.sdet summary::after{content:"›";margin-left:10px;transition:transform .2s}
+.sdet[open] summary::after{transform:rotate(90deg)}
+.sdet summary b{margin-left:auto;opacity:.8}
+
+/* v1.3.0-pwa8 : recherche dans Jeux et règles */
+#jcats[hidden]{display:none}
+
+/* v1.3.0-pwa8 : pages allégées (classement, profil) */
+.pl.lnk{display:flex;align-items:center;gap:10px;padding:12px 14px;color:inherit;text-decoration:none}
+.pl.lnk.king{background:rgba(var(--rgb),.1);border-color:rgba(var(--rgb),.4)}
+.pl.lnk em{font-style:normal;font-weight:900;font-size:17px;white-space:nowrap;color:#fff}
+.pl.lnk:active{transform:scale(.98)}
+.prof{text-align:center}.prof .av.big{margin:0 auto 10px}.prof h1{margin-bottom:2px}
+.kpis:has(> div:nth-child(2):last-child){grid-template-columns:repeat(2,1fr)}
+
+/* ---- extras : mode TV, feuille de score, minuteur ---- */
+.tv h1{text-align:center;margin:.2em 0}.tv>p{text-align:center;opacity:.8}
+.tvrow{display:flex;align-items:center;gap:.6em;padding:.45em .3em;border-bottom:1px solid rgba(255,255,255,.08);font-size:clamp(1.3rem,6vw,2.4rem)}
+.tvrow b{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tvrow em{font-style:normal;font-weight:800;font-size:1.3em}
+.tvrow.first em{color:var(--gold,#f5c451)}
+.sheet summary{cursor:pointer;font-weight:700}.sheet .line{margin:.4em 0}.sheet select{width:100%}
+
+/* v2.5.0 : menu Plus en groupes qui se déplient */
+.card.pgrp{padding:6px 14px}
+.pgrp>summary{display:flex;align-items:center;gap:14px;min-height:56px;padding:6px 0;font-size:17px;color:inherit}
+.pgrp>summary::before{order:3;margin-left:2px}
+.pgrp>summary i{font-style:normal;font-size:26px;width:38px;text-align:center}
+.pgrp>summary span{flex:1;font-weight:800}
+.pgrp>summary em{font-style:normal;font-size:12.5px;opacity:.65;padding:2px 9px;border-radius:99px;background:rgba(255,255,255,.1)}
+.pgrp>a:first-of-type{border-top:1px solid rgba(255,255,255,.08)}
+.pgrp[open]>*:not(summary){animation:none}

@@ -1,0 +1,9 @@
+services:
+  jeux-scores:
+    build: ./server
+    container_name: jeux-scores
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./server/data:/app/data

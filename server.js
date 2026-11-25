@@ -5,7 +5,7 @@ const DIR = process.env.DATA_DIR || path.join(__dirname, "data");
 const FILE = path.join(DIR, "parties.json");
 const SFILE = path.join(DIR, "settings.json");
 const PUB = path.join(__dirname, "public");
-const TYPES = { ".html": "text/html; charset=utf-8", ".css": "text/css", ".js": "text/javascript", ".json": "application/json", ".svg": "image/svg+xml", ".png": "image/png", ".webmanifest": "application/manifest+json" };
+const TYPES = { ".html": "text/html; charset=utf-8", ".css": "text/css", ".js": "text/javascript", ".json": "application/json", ".svg": "image/svg+xml", ".png": "image/png", ".webmanifest": "application/manifest+json", ".ico": "image/x-icon", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp", ".txt": "text/plain; charset=utf-8" };
 
 fs.mkdirSync(DIR, { recursive: true });
 let parties = [];
@@ -54,14 +54,18 @@ http.createServer((req, res) => {
     });
     return;
   }
-  if (url.pathname === "/api/parties" && req.method === "DELETE") { parties = []; persist(); return reply(res, 200, { ok: true }); }
+  if (url.pathname === "/api/parties" && req.method === "DELETE") { if (req.headers["x-confirm"] !== "tout-supprimer") return reply(res, 403, { error: "confirmation requise" }); parties = []; persist(); return reply(res, 200, { ok: true }); }
   const del = url.pathname.match(/^\/api\/parties\/(.+)$/);
   if (del && req.method === "DELETE") {
     parties = parties.filter(x => x.id !== decodeURIComponent(del[1]));
     persist(); return reply(res, 200, { ok: true });
   }
   let file = path.normalize(path.join(PUB, url.pathname === "/" ? "index.html" : url.pathname));
-  if (!file.startsWith(PUB) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) file = path.join(PUB, "index.html");
+  const found = file.startsWith(PUB) && fs.existsSync(file) && !fs.statSync(file).isDirectory();
+  if (!found) {                                             // fichier manquant : 404 net (au lieu de renvoyer index.html pour une icône, un script...)
+    if (path.extname(url.pathname)) return reply(res, 404, { error: "introuvable" });
+    file = path.join(PUB, "index.html");
+  }
   const st = fs.statSync(file), etag = '"' + st.size + "-" + Math.round(st.mtimeMs) + '"';
   if (req.headers["if-none-match"] === etag) { res.writeHead(304, { ETag: etag, "Cache-Control": "no-cache" }); return res.end(); }
   res.setHeader("ETag", etag);
